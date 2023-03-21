@@ -35,10 +35,14 @@ export default class Base {
 		if (!this._userToken?.access_token || !this._userToken?.expiry) {
 			const fileStr = fs.readFileSync("./token.json", { encoding: "utf8" });
 			this._userToken = JSON.parse(fileStr);
+			console.log(
+				`setUserTokens() > Read Tokens from File: ${JSON.stringify(
+					this._userToken
+				)}`
+			);
 		}
 		if (this._userToken?.access_token) {
 			this._util.setAccessToken(this._userToken.access_token);
 		}
-		console.log(`setUserTokens() > ${JSON.stringify(this._userToken)}`);
 	}
 }

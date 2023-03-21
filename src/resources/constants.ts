@@ -34,3 +34,9 @@ export const extra_scopes = [
 	"streaming",
 	"app-remote-control",
 ];
+
+export const TargetPlaylist = {
+	name: "Archive of weekly songs",
+	description:
+		"This is a archive of discover weekly songs - created by spotify api",
+};
