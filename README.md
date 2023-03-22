@@ -46,7 +46,8 @@ Then Run the main script
 
 ## Demo
 
-Insert gif or link to demo
+![Spotify Playlist](https://user-images.githubusercontent.com/53948620/226859162-35ba3b5c-91dd-4b2c-926a-d3b773135db9.png)
+
 
 ## Acknowledgements
 
