@@ -1,6 +1,6 @@
 import Playlists from "./playlists";
 import * as C from "../resources/constants";
-import { Simple_Playlist_Details } from "../types";
+import { PlaylistDetails } from "../types";
 
 const createWeeklyArchive = async () => {
 	const playlistUtil = new Playlists();
@@ -11,7 +11,7 @@ const createWeeklyArchive = async () => {
 	);
 
 	// Find required Playlist ID from All playlists
-	const featuredPlaylist: Simple_Playlist_Details = playlists
+	const featuredPlaylist: PlaylistDetails = playlists
 		.filter(i => i.name.match(/(discover)/i))
 		?.map(i => {
 			return {
@@ -26,8 +26,8 @@ const createWeeklyArchive = async () => {
 			`createWeeklyArchive() > Featured Playlist not found - skipping rest of the process`
 		);
 	}
-
-	let newPlaylist: Simple_Playlist_Details;
+	// Create new Playlist if required and get its details - If already Exists then get its details
+	let newPlaylist: PlaylistDetails;
 	const archivePlaylistExists = playlists.find(
 		i => i.name === C.WeeklyArchivePlaylist.name
 	);
@@ -61,6 +61,7 @@ const createWeeklyArchive = async () => {
 		);
 		const targetTracksURI = featuredTracks.map(i => i.uri);
 		await playlistUtil.updatePlaylistWithSongs(newPlaylist, targetTracksURI);
+		await playlistUtil.maintainPlaylistsAtSize(newPlaylist);
 	}
 };
 

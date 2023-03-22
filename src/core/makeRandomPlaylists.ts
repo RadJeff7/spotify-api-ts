@@ -1,6 +1,6 @@
 import Playlists from "./playlists";
 import * as C from "../resources/constants";
-import { Simple_Playlist_Details } from "../types";
+import { PlaylistDetails } from "../types";
 
 const makeRandomPlaylists = async () => {
 	const playlistUtil = new Playlists();
@@ -8,7 +8,7 @@ const makeRandomPlaylists = async () => {
 	console.log(
 		`makeRandomPlaylists() > Total User Playlists >> ${playlists.length}`
 	);
-	const featuredPlaylists: Simple_Playlist_Details[] = playlists
+	const featuredPlaylists: PlaylistDetails[] = playlists
 		.filter(i => i.name.match(/(Daily)/i))
 		?.map(playlist => {
 			return {
@@ -24,21 +24,21 @@ const makeRandomPlaylists = async () => {
 		);
 	}
 
-	let newPlaylist: Simple_Playlist_Details;
+	let newPlaylist: PlaylistDetails;
 	const archivePlaylistExists = playlists.find(
-		i => i.name === C.WeeklyArchivePlaylist.name
+		i => i.name === C.RandomArchivePlaylist.name
 	);
 	if (!archivePlaylistExists) {
 		console.log(
-			`makeRandomPlaylists() > ${C.WeeklyArchivePlaylist.name} needs to be created`
+			`makeRandomPlaylists() > ${C.RandomArchivePlaylist.name} needs to be created`
 		);
 		newPlaylist = await playlistUtil.createNewPlaylist(
-			C.WeeklyArchivePlaylist.name,
-			C.WeeklyArchivePlaylist.description
+			C.RandomArchivePlaylist.name,
+			C.RandomArchivePlaylist.description
 		);
 	} else {
 		console.log(
-			`makeRandomPlaylists() > ${C.WeeklyArchivePlaylist.name} already exists -> appending songs`
+			`makeRandomPlaylists() > ${C.RandomArchivePlaylist.name} already exists`
 		);
 		newPlaylist = {
 			id: archivePlaylistExists.id,
@@ -56,7 +56,7 @@ const makeRandomPlaylists = async () => {
 			featuredPlaylists.map(async playlist => {
 				const randomTracks = await playlistUtil.getRandomSongsFromPlaylist(
 					playlist,
-					2
+					3
 				);
 				if (randomTracks && randomTracks.length) {
 					allRandomTracks.push(...randomTracks);
@@ -64,10 +64,11 @@ const makeRandomPlaylists = async () => {
 			})
 		);
 		console.log(
-			`RandomArchivePlaylist() > Total Random Tracks picked From Daily Mix >> ${allRandomTracks.length}`
+			`makeRandomPlaylists() > Total Random Tracks picked From Daily Mix >> ${allRandomTracks.length} - Adding Them to ${newPlaylist.name}`
 		);
 		const targetTracksURI = allRandomTracks.map(i => i.uri);
 		await playlistUtil.updatePlaylistWithSongs(newPlaylist, targetTracksURI);
+		await playlistUtil.maintainPlaylistsAtSize(newPlaylist);
 	}
 
 	console.log();

@@ -1,5 +1,5 @@
 import assert from "assert";
-import { Authorization, Simple_Playlist_Details } from "../types";
+import { Authorization, PlaylistDetails } from "../types";
 import * as Helpers from "../resources/helpers";
 import Base from "./base";
 
@@ -67,7 +67,7 @@ export default class Playlists extends Base {
 		return completePlaylists;
 	}
 
-	async getAllTracksForGivenPlaylist(playlist: Simple_Playlist_Details) {
+	async getAllTracksForGivenPlaylist(playlist: PlaylistDetails) {
 		const allTracksArr: SpotifyApi.TrackObjectFull[] = [];
 		const limit = 100;
 		let count = limit;
@@ -122,10 +122,7 @@ export default class Playlists extends Base {
 		return allTracksArr;
 	}
 
-	async addTracksToPlaylist(
-		playlist: Simple_Playlist_Details,
-		tracksURIs: string[]
-	) {
+	async addTracksToPlaylist(playlist: PlaylistDetails, tracksURIs: string[]) {
 		try {
 			this.setUserTokens();
 			const addTracksRes = await this._spUtil.addTracksToPlaylist(
@@ -151,7 +148,7 @@ export default class Playlists extends Base {
 	async createNewPlaylist(
 		name: string,
 		description: string
-	): Promise<Simple_Playlist_Details> {
+	): Promise<PlaylistDetails> {
 		try {
 			this.setUserTokens();
 			const createPlaylistRes = await this._spUtil.createPlaylist(name, {
@@ -180,7 +177,7 @@ export default class Playlists extends Base {
 	}
 
 	async updatePlaylistWithSongs(
-		playlist: Simple_Playlist_Details,
+		playlist: PlaylistDetails,
 		newTracksURIs: string[]
 	) {
 		try {
@@ -210,10 +207,7 @@ export default class Playlists extends Base {
 		}
 	}
 
-	async getRandomSongsFromPlaylist(
-		playlist: Simple_Playlist_Details,
-		count = 10
-	) {
+	async getRandomSongsFromPlaylist(playlist: PlaylistDetails, count = 10) {
 		let randomTracksArr: SpotifyApi.TrackObjectFull[] = [];
 		try {
 			this.setUserTokens();
@@ -228,5 +222,71 @@ export default class Playlists extends Base {
 			);
 		}
 		return randomTracksArr;
+	}
+
+	async deleteSongsFromPlaylist(
+		playlist: PlaylistDetails,
+		trackURIs: { uri: string }[]
+	) {
+		try {
+			this.setUserTokens();
+			const deleteTracksRes = await this._spUtil.removeTracksFromPlaylist(
+				playlist.id,
+				trackURIs
+			);
+
+			assert.equal(
+				deleteTracksRes.statusCode,
+				200,
+				`${this.constructor.name} > Playlist: ${playlist.name} > Deletion of Tracks To Playlist not successful`
+			);
+			console.log(
+				`${this.constructor.name} > Playlist: ${playlist.name} > deleteSongsFromPlaylist() > Successfully updated the playlist`
+			);
+		} catch (err) {
+			throw new Error(
+				`${this.constructor.name} > Playlist: ${playlist.name} > deleteSongsFromPlaylist() > Error: ${err}`
+			);
+		}
+	}
+
+	async maintainPlaylistsAtSize(playlist: PlaylistDetails, size = 50) {
+		try {
+			this.setUserTokens();
+			const allTracksArr = await this.getAllTracksForGivenPlaylist(playlist);
+			const playlistLength = allTracksArr.length;
+			console.log(
+				`${this.constructor.name} > maintainPlaylistsAtSize() > Playlist: ${playlist.name} > Total Tracks Present: ${playlistLength}`
+			);
+			if (playlistLength <= size) {
+				console.log(
+					`${this.constructor.name} > maintainPlaylistsAtSize() > Playlist: ${playlist.name} > Playlist size is within Max Size(${size})`
+				);
+				return;
+			} else {
+				const deletionSize = playlistLength - size;
+				if (deletionSize > 0) {
+					const randomSongsForDeletion: SpotifyApi.TrackObjectFull[] =
+						Helpers.getRandomItemsFromArray(allTracksArr, deletionSize);
+					console.log(
+						`${this.constructor.name} > maintainPlaylistsAtSize() > Playlist: ${
+							playlist.name
+						} > Playlist size(${playlistLength}) is more than Max Size(${size}) - Deleting ${deletionSize} songs -> ${randomSongsForDeletion
+							.map(song => song.name)
+							.join(" , ")}.\n`
+					);
+					return await this.deleteSongsFromPlaylist(
+						playlist,
+						randomSongsForDeletion.map(song => {
+							return { uri: song.uri };
+						})
+					);
+				}
+			}
+		} catch (err) {
+			throw new Error(
+				`${this.constructor.name} > maintainPlaylistsAtSize() > Playlist: ${playlist.name} > Error: ${err}`
+			);
+		}
 	}
 }

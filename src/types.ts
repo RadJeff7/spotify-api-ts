@@ -10,7 +10,7 @@ export type Token = {
 	refresh_token?: string;
 };
 
-export interface Simple_Playlist_Details {
+export interface PlaylistDetails {
 	id: string;
 	name: string;
 	owner?: string;
