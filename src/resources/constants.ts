@@ -1,10 +1,14 @@
+import dotenv from "dotenv";
+dotenv.config();
 import { Authorization } from "../types";
 
 export const host_url = "http://localhost:8888";
 export const Default_Auth_Details: Authorization = {
-	clientId: "92562013dc554005abdb2f2f6ea58754",
-	clientSecret: "9300cc0736a949adacdb24100913f161",
-	redirectUri: `${host_url}/callback`,
+	clientId:
+		process.env.SPOTIFY_API_CLIENT_ID || "92562013dc554005abdb2f2f6ea58754",
+	clientSecret:
+		process.env.SPOTIFY_API_CLIENT_SECRET || "9300cc0736a949adacdb24100913f161",
+	redirectUri: process.env.SPOTIFY_API_REDIRECT_URI || `${host_url}/callback`,
 };
 
 export const playlist_scopes = [
@@ -35,8 +39,14 @@ export const extra_scopes = [
 	"app-remote-control",
 ];
 
-export const TargetPlaylist = {
+export const WeeklyArchivePlaylist = {
 	name: "Archive of weekly songs",
 	description:
 		"This is a archive of discover weekly songs - created by spotify api",
+};
+
+export const RandomArchivePlaylist = {
+	name: "Spotify Mix Archive",
+	description:
+		"This is a Archive of Random Songs from Daily Mix - created by spotify api 💥 - Each Time 20-25 songs added",
 };

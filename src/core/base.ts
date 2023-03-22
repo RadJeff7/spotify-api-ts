@@ -5,11 +5,11 @@ import * as C from "../resources/constants";
 import fs from "fs";
 
 export default class Base {
-	protected _util: SpotifyWebApi;
+	protected _spUtil: SpotifyWebApi;
 	protected _clientToken!: Token;
 	protected _userToken!: Token;
 	constructor(auth?: Authorization) {
-		this._util = new SpotifyWebApi(auth ?? C.Default_Auth_Details);
+		this._spUtil = new SpotifyWebApi(auth ?? C.Default_Auth_Details);
 	}
 
 	protected async setClientTokens() {
@@ -18,7 +18,7 @@ export default class Base {
 			!this._clientToken?.expiry ||
 			(this._clientToken?.expiry && this._clientToken.expiry < moment().unix())
 		) {
-			const clientData = await this._util.clientCredentialsGrant();
+			const clientData = await this._spUtil.clientCredentialsGrant();
 			if (clientData.statusCode === 200) {
 				this._clientToken = {
 					access_token: clientData.body.access_token,
@@ -28,7 +28,7 @@ export default class Base {
 		}
 
 		console.log(`setClientTokens() > ${JSON.stringify(this._clientToken)}`);
-		this._util.setAccessToken(this._clientToken.access_token);
+		this._spUtil.setAccessToken(this._clientToken.access_token);
 	}
 
 	protected setUserTokens() {
@@ -42,7 +42,7 @@ export default class Base {
 			);
 		}
 		if (this._userToken?.access_token) {
-			this._util.setAccessToken(this._userToken.access_token);
+			this._spUtil.setAccessToken(this._userToken.access_token);
 		}
 	}
 }

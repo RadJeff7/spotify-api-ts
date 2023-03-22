@@ -4,7 +4,13 @@ This repo contains various utilities automated using Spotify APIs with Typescrip
 
 ## Current Available Functionalities
 
-- Update Archive Playlist with Spotify Generated Discover Weekly Playlist
+👉 **Create & Update Archive Playlist with Discover Weekly Playlist** 🚀
+
+Spotify Generates a Weekly Playlist which gets auto-refreshed each week, now this will archive those for me to listen those recommendations later
+
+👉 **Create & Update Archive Playlist with random songs picked from Daily Mix Playlists** 💥
+
+Spotify create 5-6 Daily Mix Playlist which gets auto-refreshed each day, now this will randomly pick few songs and archive those for me to listen those recommendations later
 
 ## Installation
 

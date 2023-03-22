@@ -15,7 +15,11 @@ export default class Server extends Base {
 	private async login() {
 		const scopes = [...C.playlist_scopes, ...C.user_scopes];
 		this._app.get("/login", (_, res) => {
-			const authorizeURL = this._util.createAuthorizeURL(scopes, "test", true);
+			const authorizeURL = this._spUtil.createAuthorizeURL(
+				scopes,
+				"test",
+				true
+			);
 			console.log(authorizeURL);
 			res.redirect(authorizeURL);
 		});
@@ -34,7 +38,7 @@ export default class Server extends Base {
 				return;
 			}
 
-			const authData = await this._util.authorizationCodeGrant(code);
+			const authData = await this._spUtil.authorizationCodeGrant(code);
 
 			const access_token = authData.body["access_token"];
 			const refresh_token = authData.body["refresh_token"];
@@ -45,8 +49,8 @@ export default class Server extends Base {
 				expiry: moment().unix() + (expires_in - 100),
 			};
 
-			this._util.setAccessToken(access_token);
-			this._util.setRefreshToken(refresh_token);
+			this._spUtil.setAccessToken(access_token);
+			this._spUtil.setRefreshToken(refresh_token);
 
 			fs.writeFileSync(
 				"./token.json",
@@ -62,12 +66,12 @@ export default class Server extends Base {
 			res.send("Success! You can now close the window.");
 
 			setInterval(async () => {
-				const data = await this._util.refreshAccessToken();
+				const data = await this._spUtil.refreshAccessToken();
 				const access_token = data.body["access_token"];
 
 				console.log("The access token has been refreshed!");
 				console.log("access_token:", access_token);
-				this._util.setAccessToken(access_token);
+				this._spUtil.setAccessToken(access_token);
 				this._userToken.access_token = access_token;
 				fs.writeFileSync(
 					"./token.json",

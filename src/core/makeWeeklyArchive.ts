@@ -1,13 +1,15 @@
-import User from "./user";
+import Playlists from "./playlists";
 import * as C from "../resources/constants";
 
 const createWeeklyArchive = async () => {
-	const userObj = new User();
-	const playlists = await userObj.getAllUserPlaylists();
-
+	const playlistUtil = new Playlists();
+	// Get All User Playlists
+	const playlists = await playlistUtil.getAllUserPlaylists();
 	console.log(
 		`createWeeklyArchive() > Total User Playlists >> ${playlists.length}`
 	);
+
+	// Find required Playlist ID from All playlists
 	const featuredPlaylistId = playlists.filter(i =>
 		i.name.match(/(discover)/i)
 	)?.[0]?.id;
@@ -18,33 +20,35 @@ const createWeeklyArchive = async () => {
 		);
 	}
 
-	const featuredTracks = await userObj.getTracksForGivenPlaylist(
-		featuredPlaylistId
+	let newPlaylistId = "";
+	const archivePlaylistExists = playlists.find(
+		i => i.name === C.WeeklyArchivePlaylist.name
 	);
-	console.log(
-		`createWeeklyArchive() > Total Tracks on Discover Weeekly >> ${featuredTracks.length}`
-	);
-	let playlistId = "";
-	const playlistExists = playlists.find(i => i.name === C.TargetPlaylist.name);
-	if (!playlistExists) {
+	if (!archivePlaylistExists) {
 		console.log(
-			`createWeeklyArchive() > ${C.TargetPlaylist.name} needs to be created`
+			`createWeeklyArchive() > ${C.WeeklyArchivePlaylist.name} needs to be created`
 		);
-		playlistId = await userObj.createNewPlaylist(
-			C.TargetPlaylist.name,
-			C.TargetPlaylist.description
+		newPlaylistId = await playlistUtil.createNewPlaylist(
+			C.WeeklyArchivePlaylist.name,
+			C.WeeklyArchivePlaylist.description
 		);
 	} else {
 		console.log(
-			`createWeeklyArchive() > ${C.TargetPlaylist.name} already exists -> appending songs`
+			`createWeeklyArchive() > ${C.WeeklyArchivePlaylist.name} already exists -> appending songs`
 		);
-		playlistId = playlistExists.id;
+		newPlaylistId = archivePlaylistExists.id;
 	}
-	console.log(`createWeeklyArchive() > Target Playlist ID >> ${playlistId}`);
-	if (playlistId) {
+	console.log(`createWeeklyArchive() > Target Playlist ID >> ${newPlaylistId}`);
+	if (newPlaylistId) {
+		const featuredTracks = await playlistUtil.getAllTracksForGivenPlaylist(
+			featuredPlaylistId
+		);
+		console.log(
+			`createWeeklyArchive() > Total Tracks on Discover Weeekly >> ${featuredTracks.length}`
+		);
 		const targetTracksURI = featuredTracks.map(i => i.uri);
-		await userObj.updatePlaylistWithSongs(playlistId, targetTracksURI);
+		await playlistUtil.updatePlaylistWithSongs(newPlaylistId, targetTracksURI);
 	}
 };
 
-export { createWeeklyArchive };
+export { createWeeklyArchive as default };

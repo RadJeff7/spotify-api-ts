@@ -1,5 +1,11 @@
-import User from "./user";
+import Playlists from "./playlists";
 import Server from "./server";
-import { createWeeklyArchive } from "./makeWeeklyArchive";
+import createWeeklyArchiveFromDiscoverWeekly from "./makeWeeklyArchive";
+import makeRandomPlaylists from "./makeRandomPlaylists";
 
-export { User, Server, createWeeklyArchive };
+export {
+	Playlists as User,
+	Server,
+	createWeeklyArchiveFromDiscoverWeekly,
+	makeRandomPlaylists,
+};
