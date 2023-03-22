@@ -50,3 +50,8 @@ export const RandomArchivePlaylist = {
 	description:
 		"This is a Archive of Random Songs from Daily Mix - created by spotify api 💥 - Each Time 20-25 songs added",
 };
+
+export const Spotify_User_Creds = {
+	email: process.env.SPOTIFY_USER_EMAIL || "rajdeepde77@gmail.com",
+	password: process.env.SPOTIFY_USER_PASS || "raj2911dey",
+};

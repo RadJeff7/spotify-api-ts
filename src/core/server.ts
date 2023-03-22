@@ -6,31 +6,31 @@ import moment from "moment";
 import fs from "fs";
 
 export default class Server extends Base {
-	protected _app: ReturnType<typeof Express>;
+	protected _expressUtil: ReturnType<typeof Express>;
 	constructor(auth?: Authorization) {
 		super(auth);
-		this._app = Express();
+		this._expressUtil = Express();
 	}
 
 	private async login() {
 		const scopes = [...C.playlist_scopes, ...C.user_scopes];
-		this._app.get("/login", (_, res) => {
+		this._expressUtil.get("/login", (_, res) => {
 			const authorizeURL = this._spUtil.createAuthorizeURL(
 				scopes,
 				"test",
 				true
 			);
-			console.log(authorizeURL);
+			console.log(
+				`${this.constructor.name} > login() > Login Page Invoked => Authorize URL: ${authorizeURL}`
+			);
 			res.redirect(authorizeURL);
 		});
 	}
 
 	private async callBack() {
-		this._app.get("/callback", async (req, res) => {
+		this._expressUtil.get("/callback", async (req, res) => {
 			const error = req.query.error;
 			const code = req.query.code as string;
-			const state = req.query.state;
-			console.log(`Started: ${error} - ${code} - ${state}`);
 
 			if (error) {
 				console.error("Callback Error:", error);
@@ -57,22 +57,21 @@ export default class Server extends Base {
 				JSON.stringify(this._userToken, null, 2)
 			);
 
-			console.log("access_token:", access_token);
-			console.log("refresh_token:", refresh_token);
-
 			console.log(
-				`Sucessfully retreived access token. Expires in ${expires_in} s.`
+				`${this.constructor.name} > callBack() > Sucessfully retreived access token. Expires in ${expires_in} s.`
 			);
 			res.send("Success! You can now close the window.");
 
 			setInterval(async () => {
 				const data = await this._spUtil.refreshAccessToken();
 				const access_token = data.body["access_token"];
+				const new_expiry = data.body["expires_in"];
 
 				console.log("The access token has been refreshed!");
-				console.log("access_token:", access_token);
 				this._spUtil.setAccessToken(access_token);
 				this._userToken.access_token = access_token;
+				this._userToken.expiry = moment().unix() + (new_expiry - 100);
+
 				fs.writeFileSync(
 					"./token.json",
 					JSON.stringify(this._userToken, null, 2)
@@ -85,8 +84,9 @@ export default class Server extends Base {
 		await this.login();
 		await this.callBack();
 
-		this._app.listen(8888, () => {
+		const server = this._expressUtil.listen(8888, () => {
 			console.log(`Http Server is UP. go to ${C.host_url}/login`);
 		});
+		return server;
 	}
 }
