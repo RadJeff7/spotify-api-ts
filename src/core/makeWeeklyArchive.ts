@@ -59,8 +59,10 @@ const createWeeklyArchive = async () => {
 		console.log(
 			`createWeeklyArchive() > Total Tracks on Discover Weeekly >> ${featuredTracks.length}`
 		);
-		const targetTracksURI = featuredTracks.map(i => i.uri);
-		await playlistUtil.updatePlaylistWithSongs(newPlaylist, targetTracksURI);
+		const targetTracks = featuredTracks.map(i => {
+			return { uri: i.uri, name: i.name };
+		});
+		await playlistUtil.updatePlaylistWithSongs(newPlaylist, targetTracks);
 		await playlistUtil.maintainPlaylistsAtSize(newPlaylist);
 	}
 };

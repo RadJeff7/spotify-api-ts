@@ -122,12 +122,15 @@ export default class Playlists extends Base {
 		return allTracksArr;
 	}
 
-	async addTracksToPlaylist(playlist: PlaylistDetails, tracksURIs: string[]) {
+	async addTracksToPlaylist(
+		playlist: PlaylistDetails,
+		tracks: { uri: string; name: string }[]
+	) {
 		try {
 			this.setUserTokens();
 			const addTracksRes = await this._spUtil.addTracksToPlaylist(
 				playlist.id,
-				tracksURIs
+				tracks.map(track => track.uri)
 			);
 
 			assert.equal(
@@ -136,7 +139,11 @@ export default class Playlists extends Base {
 				`${this.constructor.name} > Playlist: ${playlist.name} > Adding Tracks To Playlist not successful`
 			);
 			console.log(
-				`${this.constructor.name} > Playlist: ${playlist.name} > addTracksToPlaylist() > Successfully updated the playlist`
+				`${this.constructor.name} > Playlist: ${
+					playlist.name
+				} > addTracksToPlaylist() > Successfully updated the playlist With Songs -> ${tracks
+					.map(track => track.name)
+					.join(" , ")}\n`
 			);
 		} catch (err) {
 			throw new Error(
@@ -178,27 +185,27 @@ export default class Playlists extends Base {
 
 	async updatePlaylistWithSongs(
 		playlist: PlaylistDetails,
-		newTracksURIs: string[]
+		newTracks: { uri: string; name: string }[]
 	) {
 		try {
 			this.setUserTokens();
 			console.log(
-				`${this.constructor.name} > updatePlaylistWithSongs() > Playlist: ${playlist.name} > New songs to be added in Playlist >> ${newTracksURIs.length}`
+				`${this.constructor.name} > updatePlaylistWithSongs() > Playlist: ${playlist.name} > New songs to be added in Playlist >> ${newTracks.length}`
 			);
 			const tracksInPlaylist = await this.getAllTracksForGivenPlaylist(
 				playlist
 			);
-			const uniqueURIs = newTracksURIs.filter(
+			const uniqueTracks = newTracks.filter(
 				newTrack =>
 					!tracksInPlaylist.some(
-						existingTrack => existingTrack.uri === newTrack
+						existingTrack => existingTrack.uri === newTrack.uri
 					)
 			);
 			console.log(
-				`${this.constructor.name} > updatePlaylistWithSongs() > Playlist: ${playlist.name} > New and Unique songs to be added in Playlist >> ${uniqueURIs.length}`
+				`${this.constructor.name} > updatePlaylistWithSongs() > Playlist: ${playlist.name} > New and Unique songs to be added in Playlist >> ${uniqueTracks.length}`
 			);
-			if (uniqueURIs.length) {
-				await this.addTracksToPlaylist(playlist, uniqueURIs);
+			if (uniqueTracks.length) {
+				await this.addTracksToPlaylist(playlist, uniqueTracks);
 			}
 		} catch (err) {
 			throw new Error(

@@ -66,8 +66,10 @@ const makeRandomPlaylists = async () => {
 		console.log(
 			`makeRandomPlaylists() > Total Random Tracks picked From Daily Mix >> ${allRandomTracks.length} - Adding Them to ${newPlaylist.name}`
 		);
-		const targetTracksURI = allRandomTracks.map(i => i.uri);
-		await playlistUtil.updatePlaylistWithSongs(newPlaylist, targetTracksURI);
+		const targetTracks = allRandomTracks.map(i => {
+			return { uri: i.uri, name: i.name };
+		});
+		await playlistUtil.updatePlaylistWithSongs(newPlaylist, targetTracks);
 		await playlistUtil.maintainPlaylistsAtSize(newPlaylist);
 	}
 
