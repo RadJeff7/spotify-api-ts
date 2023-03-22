@@ -1,5 +1,6 @@
 import Playlists from "./playlists";
 import * as C from "../resources/constants";
+import { PlaylistDetails } from "../types";
 
 const makeRandomPlaylists = async () => {
 	const playlistUtil = new Playlists();
@@ -7,17 +8,23 @@ const makeRandomPlaylists = async () => {
 	console.log(
 		`makeRandomPlaylists() > Total User Playlists >> ${playlists.length}`
 	);
-	const featuredPlaylistsId = playlists
+	const featuredPlaylists: PlaylistDetails[] = playlists
 		.filter(i => i.name.match(/(Daily)/i))
-		?.map(playlist => playlist.id);
+		?.map(playlist => {
+			return {
+				id: playlist.id,
+				name: playlist.name,
+				owner: playlist.owner?.display_name,
+			};
+		});
 
-	if (!featuredPlaylistsId || !featuredPlaylistsId.length) {
+	if (!featuredPlaylists || !featuredPlaylists.length) {
 		throw new Error(
 			`makeRandomPlaylists() > Featured Playlists not found - skipping rest of the process`
 		);
 	}
 
-	let newPlaylistId = "";
+	let newPlaylist: PlaylistDetails;
 	const archivePlaylistExists = playlists.find(
 		i => i.name === C.RandomArchivePlaylist.name
 	);
@@ -25,25 +32,31 @@ const makeRandomPlaylists = async () => {
 		console.log(
 			`makeRandomPlaylists() > ${C.RandomArchivePlaylist.name} needs to be created`
 		);
-		newPlaylistId = await playlistUtil.createNewPlaylist(
+		newPlaylist = await playlistUtil.createNewPlaylist(
 			C.RandomArchivePlaylist.name,
 			C.RandomArchivePlaylist.description
 		);
 	} else {
 		console.log(
-			`makeRandomPlaylists() > ${C.RandomArchivePlaylist.name} already exists -> appending songs`
+			`makeRandomPlaylists() > ${C.RandomArchivePlaylist.name} already exists`
 		);
-		newPlaylistId = archivePlaylistExists.id;
+		newPlaylist = {
+			id: archivePlaylistExists.id,
+			name: archivePlaylistExists.name,
+			owner: archivePlaylistExists.owner?.display_name,
+		};
 	}
-	console.log(`makeRandomPlaylists() > Target Playlist ID >> ${newPlaylistId}`);
-	if (newPlaylistId) {
+	console.log(
+		`makeRandomPlaylists() > Target Playlist >> ${JSON.stringify(newPlaylist)}`
+	);
+	if (newPlaylist) {
 		const allRandomTracks: SpotifyApi.TrackObjectFull[] = [];
 
 		await Promise.all(
-			featuredPlaylistsId.map(async id => {
+			featuredPlaylists.map(async playlist => {
 				const randomTracks = await playlistUtil.getRandomSongsFromPlaylist(
-					id,
-					2
+					playlist,
+					3
 				);
 				if (randomTracks && randomTracks.length) {
 					allRandomTracks.push(...randomTracks);
@@ -51,10 +64,13 @@ const makeRandomPlaylists = async () => {
 			})
 		);
 		console.log(
-			`RandomArchivePlaylist() > Total Random Tracks picked From Daily Mix >> ${allRandomTracks.length}`
+			`makeRandomPlaylists() > Total Random Tracks picked From Daily Mix >> ${allRandomTracks.length} - Adding Them to ${newPlaylist.name}`
 		);
-		const targetTracksURI = allRandomTracks.map(i => i.uri);
-		await playlistUtil.updatePlaylistWithSongs(newPlaylistId, targetTracksURI);
+		const targetTracks = allRandomTracks.map(i => {
+			return { uri: i.uri, name: i.name };
+		});
+		await playlistUtil.updatePlaylistWithSongs(newPlaylist, targetTracks);
+		await playlistUtil.maintainPlaylistsAtSize(newPlaylist);
 	}
 
 	console.log();

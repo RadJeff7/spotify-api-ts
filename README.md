@@ -44,12 +44,21 @@ Then Run the main script
   npm run build; npm run main
 ```
 
+**Note**: By default, `npm run main` will run all available utilities.
+
+If you want to run specific utilitys set an environment variable `UTIL_NAME` - as shown below
+
+```bash
+  npm run build;$env:UTIL_NAME="weekly"; npm run main
+```
+
+`weekly`: Discover Weekly Playlist Utility & `random`: Daily Mix Random Playlist Utility
+
 ## Demo
 
 ![Spotify Playlist](https://user-images.githubusercontent.com/53948620/226859162-35ba3b5c-91dd-4b2c-926a-d3b773135db9.png)
 
-
 ## Acknowledgements
 
 - [Spotify Node API Package](https://github.com/thelinmichael/spotify-web-api-node)
-- [Spotify Developer API](https://developer.spotify.com/documentation/)
+- [Spotify Developer Web API](https://developer.spotify.com/documentation/web-api/reference/#/)

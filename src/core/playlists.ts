@@ -1,5 +1,5 @@
 import assert from "assert";
-import { Authorization } from "../types";
+import { Authorization, PlaylistDetails } from "../types";
 import * as Helpers from "../resources/helpers";
 import Base from "./base";
 
@@ -67,21 +67,23 @@ export default class Playlists extends Base {
 		return completePlaylists;
 	}
 
-	async getAllTracksForGivenPlaylist(playlistId: string) {
+	async getAllTracksForGivenPlaylist(playlist: PlaylistDetails) {
 		const allTracksArr: SpotifyApi.TrackObjectFull[] = [];
 		const limit = 100;
 		let count = limit;
 		try {
 			this.setUserTokens();
 			const playlistTracksResponse = await this._spUtil.getPlaylistTracks(
-				playlistId,
+				playlist.id,
 				{ limit: limit }
 			);
 			const totalTracksPresent = playlistTracksResponse.body.total;
 			console.log(
 				`${
 					this.constructor.name
-				} > getAllTracksForGivenPlaylist() > PlaylistID: ${playlistId} > Total Tracks Present: ${totalTracksPresent}, Fetched ${
+				} > getAllTracksForGivenPlaylist() > Playlist: ${
+					playlist.name
+				} > Total Tracks Present: ${totalTracksPresent}, Fetched ${
 					limit < totalTracksPresent ? limit : totalTracksPresent
 				} Tracks as of now, Remaining Tracks to be Fetched: ${
 					limit < totalTracksPresent ? totalTracksPresent - limit : 0
@@ -92,7 +94,7 @@ export default class Playlists extends Base {
 			});
 			while (totalTracksPresent > count) {
 				const playlistTracksResponse = await this._spUtil.getPlaylistTracks(
-					playlistId,
+					playlist.id,
 					{ limit: limit, offset: count }
 				);
 
@@ -103,7 +105,9 @@ export default class Playlists extends Base {
 				console.log(
 					`${
 						this.constructor.name
-					} > getAllTracksForGivenPlaylist() > PlaylistID: ${playlistId} > Total Tracks Present: ${totalTracksPresent}, Fetched ${
+					} > getAllTracksForGivenPlaylist() > Playlist: ${
+						playlist.name
+					} > Total Tracks Present: ${totalTracksPresent}, Fetched ${
 						count < totalTracksPresent ? count : totalTracksPresent
 					} Tracks as of now, Remaining Tracks to be Fetched: ${
 						count < totalTracksPresent ? totalTracksPresent - count : 0
@@ -112,36 +116,46 @@ export default class Playlists extends Base {
 			}
 		} catch (err) {
 			throw new Error(
-				`${this.constructor.name} > getAllTracksForGivenPlaylist() > PlaylistID: ${playlistId} > Error: ${err}`
+				`${this.constructor.name} > getAllTracksForGivenPlaylist() > Playlist: ${playlist.name} > Error: ${err}`
 			);
 		}
 		return allTracksArr;
 	}
 
-	async addTracksToPlaylist(playlistId: string, tracksURIs: string[]) {
+	async addTracksToPlaylist(
+		playlist: PlaylistDetails,
+		tracks: { uri: string; name: string }[]
+	) {
 		try {
 			this.setUserTokens();
 			const addTracksRes = await this._spUtil.addTracksToPlaylist(
-				playlistId,
-				tracksURIs
+				playlist.id,
+				tracks.map(track => track.uri)
 			);
 
 			assert.equal(
 				addTracksRes.statusCode,
 				201,
-				`${this.constructor.name} > PlaylistID: ${playlistId} > Adding Tracks To Playlist not successful`
+				`${this.constructor.name} > Playlist: ${playlist.name} > Adding Tracks To Playlist not successful`
 			);
 			console.log(
-				`${this.constructor.name} > PlaylistID: ${playlistId} > addTracksToPlaylist() > Successfully updated the playlist`
+				`${this.constructor.name} > Playlist: ${
+					playlist.name
+				} > addTracksToPlaylist() > Successfully updated the playlist With Songs -> ${tracks
+					.map(track => track.name)
+					.join(" , ")}\n`
 			);
 		} catch (err) {
 			throw new Error(
-				`${this.constructor.name} > PlaylistID: ${playlistId} > addTracksToPlaylist() > Error: ${err}`
+				`${this.constructor.name} > Playlist: ${playlist.name} > addTracksToPlaylist() > Error: ${err}`
 			);
 		}
 	}
 
-	async createNewPlaylist(name: string, description: string) {
+	async createNewPlaylist(
+		name: string,
+		description: string
+	): Promise<PlaylistDetails> {
 		try {
 			this.setUserTokens();
 			const createPlaylistRes = await this._spUtil.createPlaylist(name, {
@@ -157,8 +171,11 @@ export default class Playlists extends Base {
 			console.log(
 				`${this.constructor.name} > createNewPlaylist() > Created new Playlist - name: ${name}`
 			);
-			const playlistId = createPlaylistRes.body.id;
-			return playlistId;
+			return {
+				id: createPlaylistRes.body.id,
+				name: createPlaylistRes.body.name,
+				owner: createPlaylistRes.body.owner?.display_name,
+			};
 		} catch (err) {
 			throw new Error(
 				`${this.constructor.name} > createNewPlaylist() > Error: ${err}`
@@ -166,48 +183,117 @@ export default class Playlists extends Base {
 		}
 	}
 
-	async updatePlaylistWithSongs(playlistId: string, newTracksURIs: string[]) {
+	async updatePlaylistWithSongs(
+		playlist: PlaylistDetails,
+		newTracks: { uri: string; name: string }[]
+	) {
 		try {
 			this.setUserTokens();
 			console.log(
-				`${this.constructor.name} > updatePlaylistWithSongs() > PlaylistID: ${playlistId} > New songs to be added in Playlist >> ${newTracksURIs.length}`
+				`${this.constructor.name} > updatePlaylistWithSongs() > Playlist: ${playlist.name} > New songs to be added in Playlist >> ${newTracks.length}`
 			);
 			const tracksInPlaylist = await this.getAllTracksForGivenPlaylist(
-				playlistId
+				playlist
 			);
-			const uniqueURIs = newTracksURIs.filter(
+			const uniqueTracks = newTracks.filter(
 				newTrack =>
 					!tracksInPlaylist.some(
-						existingTrack => existingTrack.uri === newTrack
+						existingTrack => existingTrack.uri === newTrack.uri
 					)
 			);
 			console.log(
-				`${this.constructor.name} > updatePlaylistWithSongs() > PlaylistID: ${playlistId} > New and Unique songs to be added in Playlist >> ${uniqueURIs.length}`
+				`${this.constructor.name} > updatePlaylistWithSongs() > Playlist: ${playlist.name} > New and Unique songs to be added in Playlist >> ${uniqueTracks.length}`
 			);
-			if (uniqueURIs.length) {
-				await this.addTracksToPlaylist(playlistId, uniqueURIs);
+			if (uniqueTracks.length) {
+				await this.addTracksToPlaylist(playlist, uniqueTracks);
 			}
 		} catch (err) {
 			throw new Error(
-				`${this.constructor.name} > updatePlaylistWithSongs() > PlaylistID: ${playlistId} > Error: ${err}`
+				`${this.constructor.name} > updatePlaylistWithSongs() > Playlist: ${playlist.name} > Error: ${err}`
 			);
 		}
 	}
 
-	async getRandomSongsFromPlaylist(playlistId: string, count = 10) {
+	async getRandomSongsFromPlaylist(playlist: PlaylistDetails, count = 10) {
 		let randomTracksArr: SpotifyApi.TrackObjectFull[] = [];
 		try {
 			this.setUserTokens();
-			const allTracksArr = await this.getAllTracksForGivenPlaylist(playlistId);
+			const allTracksArr = await this.getAllTracksForGivenPlaylist(playlist);
 			console.log(
-				`${this.constructor.name} > getRandomSongsFromPlaylist() > PlaylistID: ${playlistId} > Total Tracks Present: ${allTracksArr.length} - Fetching random ${count} Tracks`
+				`${this.constructor.name} > getRandomSongsFromPlaylist() > Playlist: ${playlist.name} > Total Tracks Present: ${allTracksArr.length} - Fetching random ${count} Tracks`
 			);
 			randomTracksArr = Helpers.getRandomItemsFromArray(allTracksArr, count);
 		} catch (err) {
 			throw new Error(
-				`${this.constructor.name} > getRandomSongsFromPlaylist() > PlaylistID: ${playlistId} > Error: ${err}`
+				`${this.constructor.name} > getRandomSongsFromPlaylist() > Playlist: ${playlist.name} > Error: ${err}`
 			);
 		}
 		return randomTracksArr;
+	}
+
+	async deleteSongsFromPlaylist(
+		playlist: PlaylistDetails,
+		trackURIs: { uri: string }[]
+	) {
+		try {
+			this.setUserTokens();
+			const deleteTracksRes = await this._spUtil.removeTracksFromPlaylist(
+				playlist.id,
+				trackURIs
+			);
+
+			assert.equal(
+				deleteTracksRes.statusCode,
+				200,
+				`${this.constructor.name} > Playlist: ${playlist.name} > Deletion of Tracks To Playlist not successful`
+			);
+			console.log(
+				`${this.constructor.name} > Playlist: ${playlist.name} > deleteSongsFromPlaylist() > Successfully updated the playlist`
+			);
+		} catch (err) {
+			throw new Error(
+				`${this.constructor.name} > Playlist: ${playlist.name} > deleteSongsFromPlaylist() > Error: ${err}`
+			);
+		}
+	}
+
+	async maintainPlaylistsAtSize(playlist: PlaylistDetails, size = 50) {
+		try {
+			this.setUserTokens();
+			const allTracksArr = await this.getAllTracksForGivenPlaylist(playlist);
+			const playlistLength = allTracksArr.length;
+			console.log(
+				`${this.constructor.name} > maintainPlaylistsAtSize() > Playlist: ${playlist.name} > Total Tracks Present: ${playlistLength}`
+			);
+			if (playlistLength <= size) {
+				console.log(
+					`${this.constructor.name} > maintainPlaylistsAtSize() > Playlist: ${playlist.name} > Playlist size is within Max Size(${size})`
+				);
+				return;
+			} else {
+				const deletionSize = playlistLength - size;
+				if (deletionSize > 0) {
+					const randomSongsForDeletion: SpotifyApi.TrackObjectFull[] =
+						Helpers.getRandomItemsFromArray(allTracksArr, deletionSize);
+					console.log(
+						`${this.constructor.name} > maintainPlaylistsAtSize() > Playlist: ${
+							playlist.name
+						} > Playlist size(${playlistLength}) is more than Max Size(${size}) - Deleting ${deletionSize} songs -> ${randomSongsForDeletion
+							.map(song => song.name)
+							.join(" , ")}.\n`
+					);
+					return await this.deleteSongsFromPlaylist(
+						playlist,
+						randomSongsForDeletion.map(song => {
+							return { uri: song.uri };
+						})
+					);
+				}
+			}
+		} catch (err) {
+			throw new Error(
+				`${this.constructor.name} > maintainPlaylistsAtSize() > Playlist: ${playlist.name} > Error: ${err}`
+			);
+		}
 	}
 }

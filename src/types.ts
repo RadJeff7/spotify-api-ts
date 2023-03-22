@@ -9,3 +9,9 @@ export type Token = {
 	expiry: number;
 	refresh_token?: string;
 };
+
+export interface PlaylistDetails {
+	id: string;
+	name: string;
+	owner?: string;
+}
