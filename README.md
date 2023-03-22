@@ -8,21 +8,34 @@ This repo contains various utilities automated using Spotify APIs with Typescrip
 
 ## Installation
 
-Install my-project with npm
+- Clone the repository
 
 ```bash
-  npm install my-project
-  cd my-project
+  git clone https://github.com/RadJeff7/spotify-api-ts.git
+  cd spotify-api-ts
+```
+
+- Open with VSCODE or any editor of your choice
+- Install the npm packages
+
+```bash
+  npm i
 ```
 
 ## Usage/Examples
 
-```javascript
-import Component from "my-project";
+- Open two terminal window - One for Server Function to generate OAuth Access Tokens & one for the main Utility
 
-function App() {
-	return <Component />;
-}
+```bash
+  npm run build; npm run start:server
+```
+
+The above generates a URL which needs to accessed from Browser and Click on Agree.
+
+Then Run the main script
+
+```bash
+  npm run build; npm run main
 ```
 
 ## Demo
