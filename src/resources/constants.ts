@@ -40,13 +40,13 @@ export const extra_scopes = [
 export const WeeklyArchivePlaylist = {
 	name: "Archive of weekly songs",
 	description:
-		"This is a archive of discover weekly songs - created by spotify api",
+		"This is a archive of discover weekly songs - created by spotify api - Maintained at around 50 Songs",
 };
 
 export const RandomArchivePlaylist = {
 	name: "Spotify Mix Archive",
 	description:
-		"This is a Archive of Random Songs from Daily Mix - created by spotify api 💥 - Each Time 20-25 songs added",
+		"This is a Archive of Random Songs from Daily Mix - created by spotify api 💥 - Maintained at 50 Songs",
 };
 
 export const Spotify_User_Creds = {
