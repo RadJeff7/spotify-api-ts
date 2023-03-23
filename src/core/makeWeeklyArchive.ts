@@ -19,14 +19,16 @@ const createWeeklyArchive = async () => {
 				name: i.name,
 				owner: i.owner?.display_name,
 			};
-		})[0];
-
+		})
+		.filter(i => {
+			return i.owner?.toLowerCase().includes("spotify");
+		})?.[0];
 	if (!featuredPlaylist) {
 		throw new Error(
 			`createWeeklyArchive() > Featured Playlist not found - skipping rest of the process`
 		);
 	}
-	// Create new Playlist if required and get its details - If already Exists then get its details
+	// Try to find our Target(archive) Playlist from list of user playlists - if not found create new playlist
 	let newPlaylist: PlaylistDetails;
 	const archivePlaylistExists = playlists.find(
 		i => i.name === C.WeeklyArchivePlaylist.name
@@ -53,6 +55,10 @@ const createWeeklyArchive = async () => {
 		`createWeeklyArchive() > Target Playlist >> ${JSON.stringify(newPlaylist)}`
 	);
 	if (newPlaylist) {
+		await playlistUtil.updatePlaylistCoverImage(
+			newPlaylist,
+			C.Relative_Playlist_Image_Path.weekly
+		);
 		const featuredTracks = await playlistUtil.getAllTracksForGivenPlaylist(
 			featuredPlaylist
 		);
@@ -63,7 +69,7 @@ const createWeeklyArchive = async () => {
 			return { uri: i.uri, name: i.name };
 		});
 		await playlistUtil.updatePlaylistWithSongs(newPlaylist, targetTracks);
-		await playlistUtil.maintainPlaylistsAtSize(newPlaylist);
+		await playlistUtil.maintainPlaylistsAtSize(newPlaylist, 60);
 	}
 };
 

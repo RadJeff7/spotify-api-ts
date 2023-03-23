@@ -10,7 +10,7 @@
 		"prepublish": "npm run build",
 		"docs": "typedoc --out docs",
 		"precommit": "lint-staged",
-		"start:server": "node ./dist/serverRunner",
+		"start:token": "node ./dist/tokenGenerator",
 		"main": "node ./dist/main",
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
@@ -53,6 +53,7 @@
 		"log4js": "^6.3.0",
 		"moment": "^2.29.4",
 		"prettier": "^2.8.5",
+		"puppeteer-core": "^19.7.5",
 		"rimraf": "^4.4.0",
 		"ts-node": "^10.9.1",
 		"typedoc": "^0.23.28",

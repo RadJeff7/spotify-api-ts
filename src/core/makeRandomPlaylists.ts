@@ -16,6 +16,9 @@ const makeRandomPlaylists = async () => {
 				name: playlist.name,
 				owner: playlist.owner?.display_name,
 			};
+		})
+		.filter(i => {
+			return i.owner?.toLowerCase().includes("spotify");
 		});
 
 	if (!featuredPlaylists || !featuredPlaylists.length) {
@@ -50,6 +53,10 @@ const makeRandomPlaylists = async () => {
 		`makeRandomPlaylists() > Target Playlist >> ${JSON.stringify(newPlaylist)}`
 	);
 	if (newPlaylist) {
+		await playlistUtil.updatePlaylistCoverImage(
+			newPlaylist,
+			C.Relative_Playlist_Image_Path.random
+		);
 		const allRandomTracks: SpotifyApi.TrackObjectFull[] = [];
 
 		await Promise.all(
@@ -72,8 +79,6 @@ const makeRandomPlaylists = async () => {
 		await playlistUtil.updatePlaylistWithSongs(newPlaylist, targetTracks);
 		await playlistUtil.maintainPlaylistsAtSize(newPlaylist);
 	}
-
-	console.log();
 };
 
 export { makeRandomPlaylists as default };

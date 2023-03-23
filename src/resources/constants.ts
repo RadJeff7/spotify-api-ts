@@ -4,10 +4,8 @@ import { Authorization } from "../types";
 
 export const host_url = "http://localhost:8888";
 export const Default_Auth_Details: Authorization = {
-	clientId:
-		process.env.SPOTIFY_API_CLIENT_ID || "92562013dc554005abdb2f2f6ea58754",
-	clientSecret:
-		process.env.SPOTIFY_API_CLIENT_SECRET || "9300cc0736a949adacdb24100913f161",
+	clientId: process.env.SPOTIFY_API_CLIENT_ID || "", //Mention ClientID in .env file
+	clientSecret: process.env.SPOTIFY_API_CLIENT_SECRET || "", //Mention ClientSecret in .env file
 	redirectUri: process.env.SPOTIFY_API_REDIRECT_URI || `${host_url}/callback`,
 };
 
@@ -40,13 +38,28 @@ export const extra_scopes = [
 ];
 
 export const WeeklyArchivePlaylist = {
-	name: "Archive of weekly songs",
+	name: "Discover Weekly Archive",
 	description:
-		"This is a archive of discover weekly songs - created by spotify api",
+		"Weekly Spotify Recommendations at one place 🎶 Created by spotify api - Maintained at around 60 Songs",
 };
 
 export const RandomArchivePlaylist = {
-	name: "Spotify Mix Archive",
+	name: "Random Daily Mix",
 	description:
-		"This is a Archive of Random Songs from Daily Mix - created by spotify api 💥 - Each Time 20-25 songs added",
+		"Random Songs from Spotify Daily - created by spotify api 💥 - Maintained at 50 Songs",
+};
+
+export const Spotify_User_Creds = {
+	email: process.env.SPOTIFY_USER_EMAIL || "", //Mention User Email in .env file
+	password: process.env.SPOTIFY_USER_PASS || "", //Mention User password in .env file
+};
+
+export const Browser_Executable_Path =
+	process.env.BROWSER_EXECUTABLE_PATH || ""; //Mention Path in .env file
+
+export const Default_Server_Uptime_Minutes = 20;
+
+export const Relative_Playlist_Image_Path = {
+	random: "/resources/images/Random-Mix-Playlist.jpg",
+	weekly: "/resources/images/DiscoverWeekly-Mix-Playlist.jpg",
 };

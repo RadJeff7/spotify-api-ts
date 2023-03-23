@@ -2,6 +2,7 @@
 node_modules
 dist
 logs
+screenshots
 .vscode
 
 # Files
@@ -9,3 +10,4 @@ logs
 package-lock.json
 .npmrc
 *.json
+*.png
