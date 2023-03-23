@@ -9,9 +9,11 @@ export default class Base {
 	protected _spUtil: SpotifyWebApi;
 	protected _clientToken!: Token;
 	protected _userToken!: Token;
+	protected _scopes: string[];
 	constructor(auth?: Authorization) {
 		this._authDetails = auth ?? C.Default_Auth_Details;
 		this._spUtil = new SpotifyWebApi(this._authDetails);
+		this._scopes = [...C.playlist_scopes, ...C.user_scopes, ...C.extra_scopes];
 	}
 
 	protected async setClientTokens() {

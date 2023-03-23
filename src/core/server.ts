@@ -14,10 +14,9 @@ export default class Server extends Base {
 	}
 
 	private async login() {
-		const scopes = [...C.playlist_scopes, ...C.user_scopes];
 		this._expressUtil.get("/login", (_, res) => {
 			const authorizeURL = this._spUtil.createAuthorizeURL(
-				scopes,
+				this._scopes,
 				"test",
 				true
 			);

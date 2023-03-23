@@ -30,7 +30,9 @@ const main = async () => {
 
 	while (serverUptimeMinutes <= C.Default_Server_Uptime_Minutes) {
 		console.log(
-			`tokenGenerator() > Server will kept on Listen Mode - will be re-checked after ${
+			`tokenGenerator() > Server will kept on Listen Mode for total of ${
+				C.Default_Server_Uptime_Minutes
+			} Minutes - will be re-checked after ${
 				C.Default_Server_Uptime_Minutes / 4
 			} minutes`
 		);

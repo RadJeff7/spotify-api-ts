@@ -38,15 +38,15 @@ export const extra_scopes = [
 ];
 
 export const WeeklyArchivePlaylist = {
-	name: "Archive of weekly songs",
+	name: "Discover Weekly Archive",
 	description:
-		"This is a archive of discover weekly songs - created by spotify api - Maintained at around 50 Songs",
+		"Weekly Spotify Recommendations at one place 🎶 Created by spotify api - Maintained at around 60 Songs",
 };
 
 export const RandomArchivePlaylist = {
-	name: "Spotify Mix Archive",
+	name: "Random Daily Mix",
 	description:
-		"This is a Archive of Random Songs from Daily Mix - created by spotify api 💥 - Maintained at 50 Songs",
+		"Random Songs from Spotify Daily - created by spotify api 💥 - Maintained at 50 Songs",
 };
 
 export const Spotify_User_Creds = {
@@ -58,3 +58,8 @@ export const Browser_Executable_Path =
 	process.env.BROWSER_EXECUTABLE_PATH || ""; //Mention Path in .env file
 
 export const Default_Server_Uptime_Minutes = 20;
+
+export const Relative_Playlist_Image_Path = {
+	random: "/resources/images/Random-Mix-Playlist.jpg",
+	weekly: "/resources/images/DiscoverWeekly-Mix-Playlist.jpg",
+};
