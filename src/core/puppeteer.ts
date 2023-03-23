@@ -1,6 +1,7 @@
 import assert from "assert";
-import Puppeteer, { Browser, ElementHandle, Page } from "puppeteer";
+import Puppeteer, { Browser, ElementHandle, Page } from "puppeteer-core";
 import * as C from "../resources/constants";
+import fs from "fs";
 
 export default class BrowserClass {
 	private _browserUtil!: Browser;
@@ -8,12 +9,24 @@ export default class BrowserClass {
 	private _authPage!: Page;
 
 	protected async getBrowserObj() {
-		if (!this._browserUtil) {
-			this._browserUtil = await Puppeteer.launch({
-				headless: true,
-				ignoreHTTPSErrors: true,
-			});
+		try {
+			if (!this._browserUtil) {
+				this._browserUtil = await Puppeteer.launch({
+					headless: true,
+					ignoreHTTPSErrors: true,
+					executablePath: C.Browser_Executable_Path,
+				});
+			}
+		} catch (err) {
+			throw new Error(
+				`${this.constructor.name} > getBrowserObj() > Failure in opening Browser Instance: ${err} - Check the executable Path(Path: ${C.Browser_Executable_Path})`
+			);
 		}
+		// screenshots folder
+		if (fs.existsSync("./screenshots"))
+			fs.rmSync("./screenshots", { recursive: true, force: true });
+
+		if (!fs.existsSync("./screenshots")) fs.mkdirSync("./screenshots");
 	}
 
 	async openSpotifyLoginPage() {
@@ -28,6 +41,11 @@ export default class BrowserClass {
 				assert.ok(
 					(await page.title()).includes(`Login`),
 					`${this.constructor.name} > openSpotifyLoginPage() > Spotify Page not found`
+				);
+				console.log(
+					`${
+						this.constructor.name
+					} > openSpotifyLoginPage() > Current Page: ${await page.title()}`
 				);
 				this._loginPage = page;
 			} catch (err) {
@@ -55,16 +73,15 @@ export default class BrowserClass {
 			assert.ok(passwordField, "Password Field could not be Found");
 			await passwordField.type(C.Spotify_User_Creds.password);
 
-			const rememberMeBtn = (
-				await this._loginPage.$x("//*[text()='Remember me']")
-			)?.[0];
-
-			await (rememberMeBtn as ElementHandle<Element>)?.click();
-
 			await this._loginPage.screenshot({
 				path: `./screenshots/${this.constructor.name}-handleSpotifyLogin-Filled.png`,
 				fullPage: true,
 			});
+			console.log(
+				`${
+					this.constructor.name
+				} > handleSpotifyLogin() > Current Page: ${await this._loginPage.title()} - Login Details Filled`
+			);
 			const loginBtn = (await this._loginPage.$x("//*[text()='Log In']"))?.[0];
 			assert.ok(loginBtn, "Log In Button Could not be found");
 			await (loginBtn as ElementHandle<Element>).click();
@@ -93,6 +110,11 @@ export default class BrowserClass {
 				path: `./screenshots/${this.constructor.name}-handleSpotifyAuthorization-Initial.png`,
 				fullPage: true,
 			});
+			console.log(
+				`${
+					this.constructor.name
+				} > handleSpotifyAuthorization() > Current Page: ${await this._authPage.title()}`
+			);
 			const agreeBtn = (await this._authPage.$x("//*[text()='Agree']"))?.[0];
 			assert.ok(agreeBtn, "Agree Button Could not be Found");
 
@@ -106,10 +128,12 @@ export default class BrowserClass {
 				path: `./screenshots/${this.constructor.name}-handleSpotifyAuthorization-Success.png`,
 				fullPage: true,
 			});
-			assert.ok(bodyHTML.includes(`Success!`));
+			assert.ok(bodyHTML.includes(`Success!`), "Success Page not displayed");
+			console.log(
+				`${this.constructor.name} > handleSpotifyAuthorization() > Current Page Content: ${bodyHTML}`
+			);
 		} catch (err) {
-			const currPage = this._authPage ?? this._loginPage;
-			await currPage.screenshot({
+			await this._loginPage.screenshot({
 				path: `./screenshots/${this.constructor.name}-handleSpotifyAuthorization-Error.png`,
 				fullPage: true,
 			});
@@ -121,6 +145,9 @@ export default class BrowserClass {
 
 	async closeBrowserInstance() {
 		if (this._browserUtil) {
+			console.log(
+				`${this.constructor.name} > closeBrowserInstance() > Browser Instance Closed`
+			);
 			this._browserUtil.close();
 		}
 	}

@@ -4,10 +4,8 @@ import { Authorization } from "../types";
 
 export const host_url = "http://localhost:8888";
 export const Default_Auth_Details: Authorization = {
-	clientId:
-		process.env.SPOTIFY_API_CLIENT_ID || "92562013dc554005abdb2f2f6ea58754",
-	clientSecret:
-		process.env.SPOTIFY_API_CLIENT_SECRET || "9300cc0736a949adacdb24100913f161",
+	clientId: process.env.SPOTIFY_API_CLIENT_ID || "", //Mention ClientID in .env file
+	clientSecret: process.env.SPOTIFY_API_CLIENT_SECRET || "", //Mention ClientSecret in .env file
 	redirectUri: process.env.SPOTIFY_API_REDIRECT_URI || `${host_url}/callback`,
 };
 
@@ -52,6 +50,11 @@ export const RandomArchivePlaylist = {
 };
 
 export const Spotify_User_Creds = {
-	email: process.env.SPOTIFY_USER_EMAIL || "rajdeepde77@gmail.com",
-	password: process.env.SPOTIFY_USER_PASS || "raj2911dey",
+	email: process.env.SPOTIFY_USER_EMAIL || "", //Mention User Email in .env file
+	password: process.env.SPOTIFY_USER_PASS || "", //Mention User password in .env file
 };
+
+export const Browser_Executable_Path =
+	process.env.BROWSER_EXECUTABLE_PATH || ""; //Mention Path in .env file
+
+export const Default_Server_Uptime_Minutes = 20;

@@ -5,11 +5,13 @@ import * as C from "../resources/constants";
 import fs from "fs";
 
 export default class Base {
+	protected _authDetails: Authorization;
 	protected _spUtil: SpotifyWebApi;
 	protected _clientToken!: Token;
 	protected _userToken!: Token;
 	constructor(auth?: Authorization) {
-		this._spUtil = new SpotifyWebApi(auth ?? C.Default_Auth_Details);
+		this._authDetails = auth ?? C.Default_Auth_Details;
+		this._spUtil = new SpotifyWebApi(this._authDetails);
 	}
 
 	protected async setClientTokens() {

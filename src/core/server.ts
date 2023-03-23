@@ -4,6 +4,7 @@ import * as C from "../resources/constants";
 import Base from "./base";
 import moment from "moment";
 import fs from "fs";
+import assert from "assert";
 
 export default class Server extends Base {
 	protected _expressUtil: ReturnType<typeof Express>;
@@ -33,7 +34,9 @@ export default class Server extends Base {
 			const code = req.query.code as string;
 
 			if (error) {
-				console.error("Callback Error:", error);
+				console.error(
+					`${this.constructor.name} > callBack() > Callback Error: ${error}`
+				);
 				res.send(`Callback Error: ${error}`);
 				return;
 			}
@@ -66,8 +69,9 @@ export default class Server extends Base {
 				const data = await this._spUtil.refreshAccessToken();
 				const access_token = data.body["access_token"];
 				const new_expiry = data.body["expires_in"];
-
-				console.log("The access token has been refreshed!");
+				console.log(
+					`${this.constructor.name} > callBack() > The access token has been refreshed!`
+				);
 				this._spUtil.setAccessToken(access_token);
 				this._userToken.access_token = access_token;
 				this._userToken.expiry = moment().unix() + (new_expiry - 100);
@@ -81,11 +85,23 @@ export default class Server extends Base {
 	}
 
 	async start() {
+		try {
+			assert.ok(
+				this._authDetails.clientId && this._authDetails.clientSecret,
+				"AuthDetails are not set - Check ClientId and Client Secret Values"
+			);
+		} catch (err) {
+			console.log(`${this.constructor.name} > start() > Error: ${err}`);
+			return;
+		}
+
 		await this.login();
 		await this.callBack();
 
 		const server = this._expressUtil.listen(8888, () => {
-			console.log(`Http Server is UP. go to ${C.host_url}/login`);
+			console.log(
+				`${this.constructor.name} > start() > Http Server is UP. go to ${C.host_url}/login`
+			);
 		});
 		return server;
 	}
