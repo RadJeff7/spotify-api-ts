@@ -52,7 +52,6 @@ jobs:
           SPOTIFY_API_CLIENT_ID: ${{vars.SPOTIFY_API_CLIENT_ID}}
           UTIL_NAME: ${{github.event.inputs.util_name}}
       - run: npm i
-      - run: npm run build
       - run: npm run ciflow
       - name: Archive artifacts
         if: always()
