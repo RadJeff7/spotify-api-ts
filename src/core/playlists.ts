@@ -10,27 +10,33 @@ export default class Playlists extends Base {
 		super(auth);
 	}
 
-	async getUserDetails() {
+	async getUserDetails(userid?: string) {
 		try {
 			this.setUserTokens();
-			const userResponse = await this._spUtil.getMe();
+			const userResponse = !userid
+				? await this._spUtil.getMe()
+				: await this._spUtil.getUser(userid);
 			return userResponse.body;
 		} catch (err) {
 			throw new Error(
-				`${this.constructor.name} > getAllTracksForGivenPlaylistgetUserDetails() > Error: ${err}`
+				`${this.constructor.name} > getUserDetails() > Error: ${err}`
 			);
 		}
 	}
 
-	async getAllUserPlaylists() {
+	async getAllUserPlaylists(userid?: string) {
 		const completePlaylists: SpotifyApi.PlaylistObjectSimplified[] = [];
 		const limit = 50;
 		let count = limit;
 		try {
 			this.setUserTokens();
-			const playlistResponse = await this._spUtil.getUserPlaylists({
-				limit: limit,
-			});
+			const playlistResponse = !userid
+				? await this._spUtil.getUserPlaylists({
+						limit: limit,
+				  })
+				: await this._spUtil.getUserPlaylists(userid, {
+						limit: limit,
+				  });
 			const totalPlaylists = playlistResponse.body.total;
 			console.log(
 				`${
@@ -44,10 +50,15 @@ export default class Playlists extends Base {
 			completePlaylists.push(...playlistResponse.body.items.map(i => i));
 
 			while (totalPlaylists > count) {
-				const playlistResponse = await this._spUtil.getUserPlaylists({
-					limit: limit,
-					offset: count,
-				});
+				const playlistResponse = !userid
+					? await this._spUtil.getUserPlaylists({
+							limit: limit,
+							offset: count,
+					  })
+					: await this._spUtil.getUserPlaylists(userid, {
+							limit: limit,
+							offset: count,
+					  });
 
 				completePlaylists.push(...playlistResponse.body.items.map(i => i));
 				count += limit;
