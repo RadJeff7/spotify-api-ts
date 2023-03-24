@@ -30,6 +30,7 @@ export default class Playlists extends Base {
 		let count = limit;
 		try {
 			this.setUserTokens();
+			/* eslint-disable */
 			const playlistResponse = !userid
 				? await this._spUtil.getUserPlaylists({
 						limit: limit,
@@ -37,6 +38,7 @@ export default class Playlists extends Base {
 				: await this._spUtil.getUserPlaylists(userid, {
 						limit: limit,
 				  });
+			/* eslint-enable */
 			const totalPlaylists = playlistResponse.body.total;
 			console.log(
 				`${
@@ -50,6 +52,7 @@ export default class Playlists extends Base {
 			completePlaylists.push(...playlistResponse.body.items.map(i => i));
 
 			while (totalPlaylists > count) {
+				/* eslint-disable */
 				const playlistResponse = !userid
 					? await this._spUtil.getUserPlaylists({
 							limit: limit,
@@ -59,7 +62,7 @@ export default class Playlists extends Base {
 							limit: limit,
 							offset: count,
 					  });
-
+				/* eslint-enable */
 				completePlaylists.push(...playlistResponse.body.items.map(i => i));
 				count += limit;
 				console.log(
