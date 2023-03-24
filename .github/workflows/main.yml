@@ -35,7 +35,7 @@ jobs:
           echo SPOTIFY_API_CLIENT_ID=$SPOTIFY_API_CLIENT_ID >> .env
         env:
           SPOTIFY_API_CLIENT_SECRET: ${{ secrets.SPOTIFY_API_CLIENT_SECRET }}
-          SPOTIFY_USER_PASS: ${{ secrets.SPOTIFY_USER_PASS }}
+          SPOTIFY_USER_PASS: ${{ vars.SPOTIFY_USER_PASS }}
           SPOTIFY_USER_EMAIL: ${{vars.SPOTIFY_USER_EMAIL}}
           SPOTIFY_API_CLIENT_ID: ${{vars.SPOTIFY_API_CLIENT_ID}}
       - run: npm i
