@@ -83,6 +83,8 @@ If you want to run specific utilities set an environment variable `UTIL_NAME` - 
 
 ![Spotify Playlist](https://user-images.githubusercontent.com/53948620/226859162-35ba3b5c-91dd-4b2c-926a-d3b773135db9.png)
 
+[![Node.js Buid CI](https://github.com/RadJeff7/spotify-api-ts/actions/workflows/build.yml/badge.svg)](https://github.com/RadJeff7/spotify-api-ts/actions/workflows/build.yml)
+
 ## Acknowledgements
 
 - [Spotify Node API Package](https://github.com/thelinmichael/spotify-web-api-node)
