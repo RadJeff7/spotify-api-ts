@@ -1,5 +1,5 @@
 import assert from "assert";
-import Puppeteer, { Browser, ElementHandle, Page } from "puppeteer-core";
+import Puppeteer, { Browser, ElementHandle, Page } from "puppeteer";
 import * as C from "../resources/constants";
 import fs from "fs";
 
@@ -14,7 +14,6 @@ export default class BrowserClass {
 				this._browserUtil = await Puppeteer.launch({
 					headless: true,
 					ignoreHTTPSErrors: true,
-					executablePath: C.Browser_Executable_Path,
 				});
 			}
 		} catch (err) {
