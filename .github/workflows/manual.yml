@@ -39,7 +39,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: Create .env with Github Secrets and run script
         run: |
-          type nul > .env
+          New-Item -Path .env
           echo SPOTIFY_API_CLIENT_SECRET=$SPOTIFY_API_CLIENT_SECRET >> .env
           echo SPOTIFY_USER_PASS=$SPOTIFY_USER_PASS >> .env
           echo SPOTIFY_USER_EMAIL=$SPOTIFY_USER_EMAIL >> .env
