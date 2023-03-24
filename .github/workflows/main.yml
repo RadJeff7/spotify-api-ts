@@ -42,6 +42,7 @@ jobs:
       - run: npm run build
       - run: npm run ciflow
       - name: Archive artifacts
+        if: always()
         uses: actions/upload-artifact@v3
         with:
           name: Important Artfacts
@@ -49,4 +50,5 @@ jobs:
             screenshots
             token.json
       - name: Download all workflow run artifacts
+        if: always()
         uses: actions/download-artifact@v3
