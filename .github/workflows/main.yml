@@ -22,7 +22,14 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - run: |
+          echo "SETUP ENV Variables"
           echo "Email ${{vars.SPOTIFY_USER_EMAIL}}"
+          $env:SPOTIFY_USER_EMAIL="${{vars.SPOTIFY_USER_EMAIL}}"
           echo "ClientId ${{vars.SPOTIFY_API_CLIENT_ID}}"
+          $env:SPOTIFY_API_CLIENT_ID="${{vars.SPOTIFY_API_CLIENT_ID}}"
+          echo "Client Secret ${{secrets.SPOTIFY_API_CLIENT_SECRET}}"
+          $env:SPOTIFY_API_CLIENT_SECRET="${{secrets.SPOTIFY_API_CLIENT_SECRET}}"
+          $env:SPOTIFY_USER_PASS="${{secrets.SPOTIFY_USER_PASS}}"
       - run: npm i
       - run: npm run build
+      - run: npm run ciflow
