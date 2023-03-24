@@ -20,5 +20,6 @@ jobs:
         uses: actions/setup-node@master
         with:
           node-version: ${{ matrix.node-version }}
+      - run: echo "${secrets.SPOTIFY_API_CLIENT_SECRET} ${SPOTIFY_USER_EMAIL}"
       - run: npm i
       - run: npm run build
