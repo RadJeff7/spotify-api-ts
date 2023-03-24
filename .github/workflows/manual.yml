@@ -38,14 +38,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - name: Create .env with Github Secrets and run script
-        run: |
-          New-Item -Path .env
-          Add-Content -Path .env -Value SPOTIFY_API_CLIENT_SECRET=$SPOTIFY_API_CLIENT_SECRET
-          Add-Content -Path .env -Value SPOTIFY_USER_PASS=$SPOTIFY_USER_PASS
-          Add-Content -Path .env -Value SPOTIFY_USER_EMAIL=$SPOTIFY_USER_EMAIL
-          Add-Content -Path .env -Value SPOTIFY_API_CLIENT_ID=$SPOTIFY_API_CLIENT_ID
-          $lines = Get-Content -Path .\env.txt
-          Write-Host "Env contains $($lines)"      
+        uses: iamsauravsharma/create-dotenv@v1.2.2   
         env:
           SPOTIFY_API_CLIENT_SECRET: ${{ secrets.SPOTIFY_API_CLIENT_SECRET }}
           SPOTIFY_USER_PASS: ${{ github.event.inputs.spotify_user_pass }}
