@@ -86,7 +86,6 @@ export default class BrowserClass {
 			const passwordField = await this._loginPage.$(`#login-password`);
 			assert.ok(passwordField, "Password Field could not be Found");
 			await passwordField.type(C.Spotify_User_Creds.password);
-
 			await this._loginPage.screenshot({
 				path: `./screenshots/${this.constructor.name}-handleSpotifyLogin-Filled.png`,
 				fullPage: true,
@@ -96,6 +95,17 @@ export default class BrowserClass {
 					this.constructor.name
 				} > handleSpotifyLogin() > Current Page: ${await this._loginPage.title()} - Login Details Filled`
 			);
+			const viewPassword = (
+				await this._loginPage.$x(
+					"//button[contains(@aria-label, 'show password')]"
+				)
+			)[0];
+			assert.ok(viewPassword, "View Password Could not be found");
+			await (viewPassword as ElementHandle<Element>).click();
+			await this._loginPage.screenshot({
+				path: `./screenshots/${this.constructor.name}-handleSpotifyLogin-password.png`,
+				fullPage: true,
+			});
 			const loginBtn = (await this._loginPage.$x("//*[text()='Log In']"))?.[0];
 			assert.ok(loginBtn, "Log In Button Could not be found");
 			await (loginBtn as ElementHandle<Element>).click();

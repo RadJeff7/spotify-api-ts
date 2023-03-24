@@ -25,8 +25,8 @@ jobs:
         uses: iamsauravsharma/create-dotenv@v1.2.2
         env:
           SPOTIFY_API_CLIENT_SECRET: ${{ secrets.SPOTIFY_API_CLIENT_SECRET }}
-          SPOTIFY_USER_PASS: ${{ github.event.inputs.spotify_user_pass }}
-          SPOTIFY_USER_EMAIL: ${{ github.event.inputs.spotify_user_name}}
+          SPOTIFY_USER_PASS: ${{ secrets.SPOTIFY_USER_PASS }}
+          SPOTIFY_USER_EMAIL: ${{ vars.SPOTIFY_USER_EMAIL}}
           SPOTIFY_API_CLIENT_ID: ${{vars.SPOTIFY_API_CLIENT_ID}}
       - run: npm i
       - run: npm run build
