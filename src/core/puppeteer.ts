@@ -1,5 +1,5 @@
 import assert from "assert";
-import Puppeteer, { Browser, ElementHandle, Page } from "puppeteer-core";
+import Puppeteer, { Browser, ElementHandle, Page } from "puppeteer";
 import * as C from "../resources/constants";
 import fs from "fs";
 
@@ -13,13 +13,21 @@ export default class BrowserClass {
 			if (!this._browserUtil) {
 				this._browserUtil = await Puppeteer.launch({
 					headless: true,
+					defaultViewport: null,
 					ignoreHTTPSErrors: true,
-					executablePath: C.Browser_Executable_Path,
+					args: [
+						"--start-maximized", // you can also use '--start-fullscreen'
+					],
 				});
+				console.log(
+					`${
+						this.constructor.name
+					} > getBrowserObj() > Browser Object Initialized $${await this._browserUtil.version()}`
+				);
 			}
 		} catch (err) {
 			throw new Error(
-				`${this.constructor.name} > getBrowserObj() > Failure in opening Browser Instance: ${err} - Check the executable Path(Path: ${C.Browser_Executable_Path})`
+				`${this.constructor.name} > getBrowserObj() > Failure in opening Browser Instance: ${err}`
 			);
 		}
 		// screenshots folder
@@ -48,6 +56,10 @@ export default class BrowserClass {
 					} > openSpotifyLoginPage() > Current Page: ${await page.title()}`
 				);
 				this._loginPage = page;
+				await page.screenshot({
+					path: `./screenshots/${this.constructor.name}-openSpotifyLoginPage-Initial.png`,
+					fullPage: true,
+				});
 			} catch (err) {
 				throw new Error(
 					`${this.constructor.name} > openSpotifyLoginPage() > Failure in Opening Spotify Login Page`
@@ -57,14 +69,16 @@ export default class BrowserClass {
 	}
 
 	async handleSpotifyLogin() {
+		if (!(C.Spotify_User_Creds.email && C.Spotify_User_Creds.password)) {
+			throw new Error(
+				`${this.constructor.name} > handleSpotifyLogin() > Spotify User Creds are not filled - `
+			);
+		}
+		console.log(`DEBUG: ${JSON.stringify(C.Spotify_User_Creds)}`);
 		try {
 			if (!this._loginPage) {
 				await this.openSpotifyLoginPage();
 			}
-			await this._loginPage.screenshot({
-				path: `./screenshots/${this.constructor.name}-handleSpotifyLogin-Initial.png`,
-				fullPage: true,
-			});
 			const usernameField = await this._loginPage.$(`#login-username`);
 			assert.ok(usernameField, "UserName Field could not be Found");
 			await usernameField.type(C.Spotify_User_Creds.email);
@@ -82,18 +96,38 @@ export default class BrowserClass {
 					this.constructor.name
 				} > handleSpotifyLogin() > Current Page: ${await this._loginPage.title()} - Login Details Filled`
 			);
+			const viewPassword = (
+				await this._loginPage.$x(
+					"//button[contains(@aria-label, 'show password')]"
+				)
+			)[0];
+			assert.ok(viewPassword, "View Password Could not be found");
+			await (viewPassword as ElementHandle<Element>).click();
+			await this._loginPage.screenshot({
+				path: `./screenshots/${this.constructor.name}-handleSpotifyLogin-password.png`,
+				fullPage: true,
+			});
 			const loginBtn = (await this._loginPage.$x("//*[text()='Log In']"))?.[0];
 			assert.ok(loginBtn, "Log In Button Could not be found");
 			await (loginBtn as ElementHandle<Element>).click();
+			await this._loginPage.screenshot({
+				path: `./screenshots/${this.constructor.name}-handleSpotifyLogin-Filled.png`,
+				fullPage: true,
+			});
 			await this._loginPage.waitForNavigation({
 				waitUntil: "domcontentloaded",
 			});
 			this._authPage = this._loginPage;
 		} catch (err) {
-			await this._loginPage.screenshot({
-				path: `./screenshots/${this.constructor.name}-handleSpotifyLogin-Error.png`,
-				fullPage: true,
-			});
+			console.log(
+				`${this.constructor.name} > handleSpotifyLogin() > Failure in handling Spotify Login Page: ${err}`
+			);
+			const currPage = this._loginPage ?? undefined;
+			if (currPage)
+				await currPage.screenshot({
+					path: `./screenshots/${this.constructor.name}-handleSpotifyLogin-Error.png`,
+					fullPage: true,
+				});
 			throw new Error(
 				`${this.constructor.name} > handleSpotifyLogin() > Failure in handling Spotify Login Page: ${err}`
 			);
@@ -133,12 +167,15 @@ export default class BrowserClass {
 				`${this.constructor.name} > handleSpotifyAuthorization() > Current Page Content: ${bodyHTML}`
 			);
 		} catch (err) {
+			console.log(
+				`${this.constructor.name} > handleSpotifyAuthorization() > Failure in handling Spotify Login Page: ${err}`
+			);
 			await this._loginPage.screenshot({
 				path: `./screenshots/${this.constructor.name}-handleSpotifyAuthorization-Error.png`,
 				fullPage: true,
 			});
 			throw new Error(
-				`${this.constructor.name} > handleSpotifyLogin() > Failure in handling Spotify Authorization Page: ${err}`
+				`${this.constructor.name} > handleSpotifyAuthorization() > Failure in handling Spotify Authorization Page: ${err}`
 			);
 		}
 	}
