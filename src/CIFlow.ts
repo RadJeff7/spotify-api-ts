@@ -40,49 +40,57 @@ const main = async () => {
 		);
 		await browserUtil.closeBrowserInstance();
 	}
+	if (actionsStatus.auth) {
+		console.log(`tokenGenerator() >  Ready to Run Main Utilities now`);
+		await sleep();
+		try {
+			console.log(
+				`****** Started Running Function to create Random Playlist from Daily Mix ****** \n\n`
+			);
+			await makeRandomPlaylists();
+			console.log(
+				`****** Completed Function to create Random Playlist from Daily Mix ******  \n\n`
+			);
+			actionsStatus.playlistUtil_1 = true;
+		} catch (err) {
+			console.error(`Error in Random Playlist from Daily Mix -> ${err}`);
+		}
+		await sleep();
+		try {
+			console.log(
+				`****** Started Running Function to create Archival Playlist from Discover Weekly ******  \n\n`
+			);
+			await createWeeklyArchiveFromDiscoverWeekly();
 
-	console.log(`tokenGenerator() >  Ready to Run Main Utilities now`);
-	await sleep();
-	try {
-		console.log(
-			`****** Started Running Function to create Random Playlist from Daily Mix ****** \n\n`
-		);
-		await makeRandomPlaylists();
-		console.log(
-			`****** Completed Function to create Random Playlist from Daily Mix ******  \n\n`
-		);
-		actionsStatus.playlistUtil_1 = true;
-	} catch (err) {
-		console.error(`Error in Random Playlist from Daily Mix -> ${err}`);
-	}
-	await sleep();
-	try {
-		console.log(
-			`****** Started Running Function to create Archival Playlist from Discover Weekly ******  \n\n`
-		);
-		await createWeeklyArchiveFromDiscoverWeekly();
+			console.log(
+				`****** Completed Function to create Archival Playlist from Discover Weekly ******  \n\n`
+			);
+			actionsStatus.playlistUtil_2 = true;
+		} catch (err) {
+			console.error(
+				`Error in creating Archival Playlist from Discover Weekly -> ${err}`
+			);
+		}
 
-		console.log(
-			`****** Completed Function to create Archival Playlist from Discover Weekly ******  \n\n`
-		);
-		actionsStatus.playlistUtil_2 = true;
-	} catch (err) {
-		console.error(
-			`Error in creating Archival Playlist from Discover Weekly -> ${err}`
-		);
-	}
+		const allUtilsPassed = Object.values(actionsStatus).every(i => i);
+		if (allUtilsPassed) {
+			const totalTime = (performance.now() - serverStart) / 1000;
 
-	const allUtilsPassed = Object.values(actionsStatus).every(i => i);
-	if (allUtilsPassed) {
-		const totalTime = (performance.now() - serverStart) / 1000;
-
-		console.log(
-			`Total Time Taken in Running all utils is - ${totalTime} seconds`
-		);
-		process.exit(0);
+			console.log(
+				`Total Time Taken in Running all utils is - ${totalTime} seconds`
+			);
+			process.exit(0);
+		} else {
+			console.log(
+				`All Utils didn't pass every step -> Status: ${JSON.stringify(
+					actionsStatus
+				)}`
+			);
+			process.exit(1);
+		}
 	} else {
 		console.log(
-			`All Utils didn't pass every step -> Status: ${JSON.stringify(
+			`AUth Utils Didnt Pass -> Skipping rest -> Status: ${JSON.stringify(
 				actionsStatus
 			)}`
 		);

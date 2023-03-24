@@ -13,7 +13,11 @@ export default class BrowserClass {
 			if (!this._browserUtil) {
 				this._browserUtil = await Puppeteer.launch({
 					headless: true,
+					defaultViewport: null,
 					ignoreHTTPSErrors: true,
+					args: [
+						"--start-maximized", // you can also use '--start-fullscreen'
+					],
 				});
 			}
 		} catch (err) {
@@ -56,6 +60,12 @@ export default class BrowserClass {
 	}
 
 	async handleSpotifyLogin() {
+		if (!(C.Spotify_User_Creds.email && C.Spotify_User_Creds.password)) {
+			throw new Error(
+				`${this.constructor.name} > handleSpotifyLogin() > Spotify User Creds are not filled - `
+			);
+		}
+		console.log(`DEBUG: ${JSON.stringify(C.Spotify_User_Creds)}`);
 		try {
 			if (!this._loginPage) {
 				await this.openSpotifyLoginPage();
@@ -81,9 +91,24 @@ export default class BrowserClass {
 					this.constructor.name
 				} > handleSpotifyLogin() > Current Page: ${await this._loginPage.title()} - Login Details Filled`
 			);
+			const viewPassword = (
+				await this._loginPage.$x(
+					"//button[contains(@aria-label, 'show password')]"
+				)
+			)[0];
+			assert.ok(viewPassword, "View Password Could not be found");
+			await (viewPassword as ElementHandle<Element>).click();
+			await this._loginPage.screenshot({
+				path: `./screenshots/${this.constructor.name}-handleSpotifyLogin-password.png`,
+				fullPage: true,
+			});
 			const loginBtn = (await this._loginPage.$x("//*[text()='Log In']"))?.[0];
 			assert.ok(loginBtn, "Log In Button Could not be found");
 			await (loginBtn as ElementHandle<Element>).click();
+			await this._loginPage.screenshot({
+				path: `./screenshots/${this.constructor.name}-handleSpotifyLogin-Filled.png`,
+				fullPage: true,
+			});
 			await this._loginPage.waitForNavigation({
 				waitUntil: "domcontentloaded",
 			});
