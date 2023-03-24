@@ -29,7 +29,6 @@ jobs:
           SPOTIFY_USER_EMAIL: ${{ vars.SPOTIFY_USER_EMAIL}}
           SPOTIFY_API_CLIENT_ID: ${{vars.SPOTIFY_API_CLIENT_ID}}
       - run: npm i
-      - run: npm run build
       - run: npm run ciflow
       - name: Archive artifacts
         if: always()
