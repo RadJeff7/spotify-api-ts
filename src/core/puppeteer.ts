@@ -19,10 +19,15 @@ export default class BrowserClass {
 						"--start-maximized", // you can also use '--start-fullscreen'
 					],
 				});
+				console.log(
+					`${
+						this.constructor.name
+					} > getBrowserObj() > Browser Object Initialized $${await this._browserUtil.version()}`
+				);
 			}
 		} catch (err) {
 			throw new Error(
-				`${this.constructor.name} > getBrowserObj() > Failure in opening Browser Instance: ${err} - Check the executable Path(Path: ${C.Browser_Executable_Path})`
+				`${this.constructor.name} > getBrowserObj() > Failure in opening Browser Instance: ${err}`
 			);
 		}
 		// screenshots folder
