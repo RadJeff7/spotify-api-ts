@@ -10,9 +10,9 @@ on:
     inputs:
       spotify_user_name:
         # Spotify User Name
-        description: 'Spotify User Email/username'
+        description: "Spotify User Email/username"
         # Default value if no value is explicitly provided
-        default: 'rajdeepde77@gmail.com'
+        default: "rajdeepde77@gmail.com"
         # Input has to be provided for the workflow to run
         required: true
       spotify_user_pass:
@@ -25,13 +25,41 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "greet"
-  greet:
+  # This workflow contains a single job called "UtilRunner"
+  UtilRunner:
     # The type of runner that the job will run on
     runs-on: windows-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    # Runs a single command using the runners shell
-    - name: Send greeting
-      run: echo "Hello ${{ github.event.inputs.spotify_user_name }}"
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Create .env with Github Secrets and run script
+        run: |
+          type nul > .env
+          echo SPOTIFY_API_CLIENT_SECRET=$SPOTIFY_API_CLIENT_SECRET >> .env
+          echo SPOTIFY_USER_PASS=$SPOTIFY_USER_PASS >> .env
+          echo SPOTIFY_USER_EMAIL=$SPOTIFY_USER_EMAIL >> .env
+          echo SPOTIFY_API_CLIENT_ID=$SPOTIFY_API_CLIENT_ID >> .env
+        env:
+          SPOTIFY_API_CLIENT_SECRET: ${{ secrets.SPOTIFY_API_CLIENT_SECRET }}
+          SPOTIFY_USER_PASS: ${{ github.event.inputs.spotify_user_pass }}
+          SPOTIFY_USER_EMAIL: ${{ github.event.inputs.spotify_user_name}}
+          SPOTIFY_API_CLIENT_ID: ${{vars.SPOTIFY_API_CLIENT_ID}}
+      - run: npm i
+      - run: npm run build
+      - run: npm run ciflow
+      - name: Archive artifacts
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: Important Artfacts
+          path: |
+            screenshots
+            token.json
+      - name: Download all workflow run artifacts
+        if: always()
+        uses: actions/download-artifact@v3
