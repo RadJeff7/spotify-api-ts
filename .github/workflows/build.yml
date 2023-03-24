@@ -1,10 +1,12 @@
-name: Node.js Buid CI #Default CI plan for any PR and Push to Master to check build failures
+name: Node.js Build CI #Default CI plan for any PR and Push to Master to check build failures
 
 on:
   push:
     branches: [master]
   pull_request:
     branches: [master]
+  schedule:
+    - cron: "0 6 * * *" #“At 06:00.”
 
 jobs:
   build:

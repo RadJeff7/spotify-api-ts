@@ -96,17 +96,6 @@ export default class BrowserClass {
 					this.constructor.name
 				} > handleSpotifyLogin() > Current Page: ${await this._loginPage.title()} - Login Details Filled`
 			);
-			const viewPassword = (
-				await this._loginPage.$x(
-					"//button[contains(@aria-label, 'show password')]"
-				)
-			)[0];
-			assert.ok(viewPassword, "View Password Could not be found");
-			await (viewPassword as ElementHandle<Element>).click();
-			await this._loginPage.screenshot({
-				path: `./screenshots/${this.constructor.name}-handleSpotifyLogin-password.png`,
-				fullPage: true,
-			});
 			const loginBtn = (await this._loginPage.$x("//*[text()='Log In']"))?.[0];
 			assert.ok(loginBtn, "Log In Button Could not be found");
 			await (loginBtn as ElementHandle<Element>).click();
@@ -119,18 +108,15 @@ export default class BrowserClass {
 			});
 			this._authPage = this._loginPage;
 		} catch (err) {
-			console.log(
-				`${this.constructor.name} > handleSpotifyLogin() > Failure in handling Spotify Login Page: ${err}`
-			);
-			const currPage = this._loginPage ?? undefined;
+			const errorStr = `${this.constructor.name} > handleSpotifyLogin() > Failure in handling Spotify Login Page: ${err}`;
+			console.log(errorStr);
+			const currPage = this._loginPage ? this._loginPage : undefined;
 			if (currPage)
 				await currPage.screenshot({
 					path: `./screenshots/${this.constructor.name}-handleSpotifyLogin-Error.png`,
 					fullPage: true,
 				});
-			throw new Error(
-				`${this.constructor.name} > handleSpotifyLogin() > Failure in handling Spotify Login Page: ${err}`
-			);
+			throw new Error(errorStr);
 		}
 	}
 
@@ -167,16 +153,19 @@ export default class BrowserClass {
 				`${this.constructor.name} > handleSpotifyAuthorization() > Current Page Content: ${bodyHTML}`
 			);
 		} catch (err) {
-			console.log(
-				`${this.constructor.name} > handleSpotifyAuthorization() > Failure in handling Spotify Login Page: ${err}`
-			);
-			await this._loginPage.screenshot({
-				path: `./screenshots/${this.constructor.name}-handleSpotifyAuthorization-Error.png`,
-				fullPage: true,
-			});
-			throw new Error(
-				`${this.constructor.name} > handleSpotifyAuthorization() > Failure in handling Spotify Authorization Page: ${err}`
-			);
+			const errorStr = `${this.constructor.name} > handleSpotifyAuthorization() > Failure in handling Spotify Login Page: ${err}`;
+			console.log(errorStr);
+			const currPage = this._authPage
+				? this._authPage
+				: this._loginPage
+				? this._loginPage
+				: undefined;
+			if (currPage)
+				await currPage.screenshot({
+					path: `./screenshots/${this.constructor.name}-handleSpotifyAuthorization-Error.png`,
+					fullPage: true,
+				});
+			throw new Error(errorStr);
 		}
 	}
 
