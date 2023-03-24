@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     strategy:
       matrix:
@@ -21,7 +21,8 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - run: |
+      - name: Create ENV File
+        run: |
           echo "SETUP ENV Variables"
           echo "Email ${{vars.SPOTIFY_USER_EMAIL}}"
           $env:SPOTIFY_USER_EMAIL="${{vars.SPOTIFY_USER_EMAIL}}"
@@ -30,6 +31,17 @@ jobs:
           echo "Client Secret ${{secrets.SPOTIFY_API_CLIENT_SECRET}}"
           $env:SPOTIFY_API_CLIENT_SECRET="${{secrets.SPOTIFY_API_CLIENT_SECRET}}"
           $env:SPOTIFY_USER_PASS="${{secrets.SPOTIFY_USER_PASS}}"
+      - name: Create .env with Github Secrets and run script
+        run: |
+          touch .env
+          echo ENV_VAR_1=$ENV_VAR_1 >> .env
+          echo ENV_VAR_2=$ENV_VAR_2 >> .env
+          npm run script-that-accesses-env-vars
+        env:
+          SPOTIFY_API_CLIENT_SECRET: ${{ secrets.SPOTIFY_API_CLIENT_SECRET }}
+          SPOTIFY_USER_PASS: ${{ secrets.SPOTIFY_USER_PASS }}
+          SPOTIFY_USER_EMAIL: ${{vars.SPOTIFY_USER_EMAIL}}
+          SPOTIFY_API_CLIENT_ID: ${{vars.SPOTIFY_API_CLIENT_ID}}
       - run: npm i
       - run: npm run build
       - run: npm run ciflow
