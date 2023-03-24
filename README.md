@@ -1,5 +1,7 @@
 # Spotify - Typescipt Utilities
 
+[![Node.js Build CI](https://github.com/RadJeff7/spotify-api-ts/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/RadJeff7/spotify-api-ts/actions/workflows/build.yml)
+
 This repo contains various utilities automated using Spotify APIs with Typescript
 
 ## Current Available Functionalities
@@ -82,8 +84,6 @@ If you want to run specific utilities set an environment variable `UTIL_NAME` - 
 ## Demo
 
 ![Spotify Playlist](https://user-images.githubusercontent.com/53948620/226859162-35ba3b5c-91dd-4b2c-926a-d3b773135db9.png)
-
-[![Node.js Build CI](https://github.com/RadJeff7/spotify-api-ts/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/RadJeff7/spotify-api-ts/actions/workflows/build.yml)
 
 ## Acknowledgements
 
