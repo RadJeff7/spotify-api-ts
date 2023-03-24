@@ -51,6 +51,10 @@ export default class BrowserClass {
 					} > openSpotifyLoginPage() > Current Page: ${await page.title()}`
 				);
 				this._loginPage = page;
+				await page.screenshot({
+					path: `./screenshots/${this.constructor.name}-openSpotifyLoginPage-Initial.png`,
+					fullPage: true,
+				});
 			} catch (err) {
 				throw new Error(
 					`${this.constructor.name} > openSpotifyLoginPage() > Failure in Opening Spotify Login Page`
@@ -70,10 +74,6 @@ export default class BrowserClass {
 			if (!this._loginPage) {
 				await this.openSpotifyLoginPage();
 			}
-			await this._loginPage.screenshot({
-				path: `./screenshots/${this.constructor.name}-handleSpotifyLogin-Initial.png`,
-				fullPage: true,
-			});
 			const usernameField = await this._loginPage.$(`#login-username`);
 			assert.ok(usernameField, "UserName Field could not be Found");
 			await usernameField.type(C.Spotify_User_Creds.email);
@@ -114,10 +114,12 @@ export default class BrowserClass {
 			});
 			this._authPage = this._loginPage;
 		} catch (err) {
-			await this._loginPage.screenshot({
-				path: `./screenshots/${this.constructor.name}-handleSpotifyLogin-Error.png`,
-				fullPage: true,
-			});
+			const currPage = this._loginPage ?? undefined;
+			if (currPage)
+				await currPage.screenshot({
+					path: `./screenshots/${this.constructor.name}-handleSpotifyLogin-Error.png`,
+					fullPage: true,
+				});
 			throw new Error(
 				`${this.constructor.name} > handleSpotifyLogin() > Failure in handling Spotify Login Page: ${err}`
 			);
