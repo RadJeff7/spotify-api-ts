@@ -1,6 +1,7 @@
 name: Node.js CI
 
 on:
+  workflow_dispatch:
   push:
     branches: [master]
   pull_request:
@@ -15,11 +16,13 @@ jobs:
         node-version: [16.x]
 
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v3
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@master
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - run: echo "${secrets.SPOTIFY_API_CLIENT_SECRET} ${SPOTIFY_USER_EMAIL}"
+      - run: |
+          echo "Email ${{vars.SPOTIFY_USER_EMAIL}}"
+          echo "ClientId ${{vars.SPOTIFY_API_CLIENT_ID}}"
       - run: npm i
       - run: npm run build
