@@ -29,9 +29,10 @@ jobs:
       - name: Create .env with Github Secrets and run script
         run: |
           touch .env
-          echo ENV_VAR_1=$ENV_VAR_1 >> .env
-          echo ENV_VAR_2=$ENV_VAR_2 >> .env
-          npm run script-that-accesses-env-vars
+          echo SPOTIFY_API_CLIENT_SECRET=$SPOTIFY_API_CLIENT_SECRET >> .env
+          echo SPOTIFY_USER_PASS=$SPOTIFY_USER_PASS >> .env
+          echo SPOTIFY_USER_EMAIL=$SPOTIFY_USER_EMAIL >> .env
+          echo SPOTIFY_API_CLIENT_ID=$SPOTIFY_API_CLIENT_ID >> .env
         env:
           SPOTIFY_API_CLIENT_SECRET: ${{ secrets.SPOTIFY_API_CLIENT_SECRET }}
           SPOTIFY_USER_PASS: ${{ secrets.SPOTIFY_USER_PASS }}
