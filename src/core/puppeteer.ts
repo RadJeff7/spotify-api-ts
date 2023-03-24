@@ -114,6 +114,9 @@ export default class BrowserClass {
 			});
 			this._authPage = this._loginPage;
 		} catch (err) {
+			console.log(
+				`${this.constructor.name} > handleSpotifyLogin() > Failure in handling Spotify Login Page: ${err}`
+			);
 			const currPage = this._loginPage ?? undefined;
 			if (currPage)
 				await currPage.screenshot({
@@ -159,12 +162,15 @@ export default class BrowserClass {
 				`${this.constructor.name} > handleSpotifyAuthorization() > Current Page Content: ${bodyHTML}`
 			);
 		} catch (err) {
+			console.log(
+				`${this.constructor.name} > handleSpotifyAuthorization() > Failure in handling Spotify Login Page: ${err}`
+			);
 			await this._loginPage.screenshot({
 				path: `./screenshots/${this.constructor.name}-handleSpotifyAuthorization-Error.png`,
 				fullPage: true,
 			});
 			throw new Error(
-				`${this.constructor.name} > handleSpotifyLogin() > Failure in handling Spotify Authorization Page: ${err}`
+				`${this.constructor.name} > handleSpotifyAuthorization() > Failure in handling Spotify Authorization Page: ${err}`
 			);
 		}
 	}
