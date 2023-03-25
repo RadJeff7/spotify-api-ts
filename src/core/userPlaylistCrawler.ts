@@ -2,10 +2,9 @@ import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 import * as Helpers from "../resources/helpers";
 import * as C from "../resources/constants";
-import Playlists from "./playlists";
+import { Playlists, ImageDownloader } from "../utilities";
 import { PlaylistDetails } from "../types";
 import path from "path";
-import ImageDownloader from "./image";
 
 const userPlaylistCrawler = async () => {
 	const playlistUtil = new Playlists();

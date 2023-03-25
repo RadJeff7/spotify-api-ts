@@ -1,9 +1,8 @@
-import Playlists from "./playlists";
+import { Playlists, ImageDownloader } from "../utilities";
 import * as Helpers from "../resources/helpers";
 import * as C from "../resources/constants";
 import { PlaylistDetails } from "../types";
 import path from "path";
-import ImageDownloader from "./image";
 
 const makeRecommendationPlaylists = async () => {
 	const playlistUtil = new Playlists();

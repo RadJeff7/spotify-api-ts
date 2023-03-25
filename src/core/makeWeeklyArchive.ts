@@ -1,4 +1,4 @@
-import Playlists from "./playlists";
+import { Playlists } from "../utilities";
 import * as C from "../resources/constants";
 import { PlaylistDetails } from "../types";
 import path from "path";

@@ -2,6 +2,7 @@ import fs from "fs";
 export const getRandomItemsFromArray = <T>(arr: T[], count: number): T[] => {
 	let n = count;
 	const len = arr.length;
+
 	if (n > len) {
 		console.log(
 			`shuffleArray() > Count of Items(${count}) is Greater than Length of Original Array(${len}) - Retrieving ${
@@ -10,6 +11,9 @@ export const getRandomItemsFromArray = <T>(arr: T[], count: number): T[] => {
 		);
 		n = len - 1;
 	}
+
+	if (n === 1) return [arr[Math.floor(Math.random() * len)]];
+
 	return arr
 		.map(value => {
 			return { value, sort: Math.random() };
