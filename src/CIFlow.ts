@@ -41,7 +41,6 @@ const main = async () => {
 		console.error(
 			`tokenGenerator() > Error in headless Browser Authentication > ${err}`
 		);
-		await browserUtil.closeBrowserInstance();
 	}
 	if (actionsStatus.auth) {
 		console.log(`tokenGenerator() >  Ready to Run Main Utilities now`);
