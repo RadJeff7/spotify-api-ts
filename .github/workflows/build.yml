@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [master]
   schedule:
-    - cron: "0 6 * * *" #“At 06:00.”
+    - cron: "0 */1 * * *" #“every 1 hours.”
 
 jobs:
   build:
