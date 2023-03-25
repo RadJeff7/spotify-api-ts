@@ -1,6 +1,7 @@
 import Playlists from "./playlists";
 import * as C from "../resources/constants";
 import { PlaylistDetails } from "../types";
+import path from "path";
 
 const makeRandomPlaylists = async () => {
 	const playlistUtil = new Playlists();
@@ -53,10 +54,11 @@ const makeRandomPlaylists = async () => {
 		`makeRandomPlaylists() > Target Playlist >> ${JSON.stringify(newPlaylist)}`
 	);
 	if (newPlaylist) {
-		await playlistUtil.updatePlaylistCoverImage(
-			newPlaylist,
-			C.Relative_Playlist_Image_Path.random
+		const fullFilePath = path.resolve(
+			__dirname,
+			`../../src/${C.Relative_Playlist_Image_Path.random}`
 		);
+		await playlistUtil.updatePlaylistCoverImage(newPlaylist, fullFilePath);
 		const allRandomTracks: SpotifyApi.TrackObjectFull[] = [];
 
 		await Promise.all(

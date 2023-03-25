@@ -59,9 +59,11 @@
 		"rimraf": "^4.4.0",
 		"ts-node": "^10.9.1",
 		"typedoc": "^0.23.28",
-		"typescript": "^5.0.2"
+		"typescript": "^5.0.2",
+		"unsplash-js": "^7.0.15"
 	},
 	"dependencies": {
+		"image-downloader": "^4.3.0",
 		"spotify-web-api-node": "^5.0.2"
 	}
 }

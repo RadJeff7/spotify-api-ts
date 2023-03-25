@@ -1,9 +1,8 @@
 import assert from "assert";
 import Puppeteer, { Browser, ElementHandle, Page } from "puppeteer";
 import { PuppeteerScreenRecorder } from "puppeteer-screen-recorder";
-
+import * as Helpers from "../resources/helpers";
 import * as C from "../resources/constants";
-import fs from "fs";
 
 export default class BrowserClass {
 	private _browserUtil!: Browser;
@@ -34,11 +33,7 @@ export default class BrowserClass {
 			const errorStr = `${this.constructor.name} > getBrowserObj() > Failure in opening Browser Instance: ${err}`;
 			await this.handleErrors(errorStr);
 		}
-		// screenshots folder
-		if (fs.existsSync("./screenshots"))
-			fs.rmSync("./screenshots", { recursive: true, force: true });
-
-		if (!fs.existsSync("./screenshots")) fs.mkdirSync("./screenshots");
+		Helpers.deleteAndCreateFolder("./screenshots");
 	}
 
 	async openSpotifyLoginPage() {

@@ -1,6 +1,7 @@
 import Playlists from "./playlists";
 import * as C from "../resources/constants";
 import { PlaylistDetails } from "../types";
+import path from "path";
 
 const createWeeklyArchive = async () => {
 	const playlistUtil = new Playlists();
@@ -55,10 +56,11 @@ const createWeeklyArchive = async () => {
 		`createWeeklyArchive() > Target Playlist >> ${JSON.stringify(newPlaylist)}`
 	);
 	if (newPlaylist) {
-		await playlistUtil.updatePlaylistCoverImage(
-			newPlaylist,
-			C.Relative_Playlist_Image_Path.weekly
+		const fullFilePath = path.resolve(
+			__dirname,
+			`../../src/${C.Relative_Playlist_Image_Path.weekly}`
 		);
+		await playlistUtil.updatePlaylistCoverImage(newPlaylist, fullFilePath);
 		const featuredTracks = await playlistUtil.getAllTracksForGivenPlaylist(
 			featuredPlaylist
 		);

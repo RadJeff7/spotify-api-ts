@@ -1,3 +1,4 @@
+import fs from "fs";
 export const getRandomItemsFromArray = <T>(arr: T[], count: number): T[] => {
 	let n = count;
 	const len = arr.length;
@@ -16,4 +17,10 @@ export const getRandomItemsFromArray = <T>(arr: T[], count: number): T[] => {
 		.sort((a, b) => a.sort - b.sort)
 		.map(({ value }) => value)
 		.slice(0, n);
+};
+
+export const deleteAndCreateFolder = (path: string) => {
+	if (fs.existsSync(path)) fs.rmSync(path, { recursive: true, force: true });
+
+	if (!fs.existsSync(path)) fs.mkdirSync(path);
 };

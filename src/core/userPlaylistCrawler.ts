@@ -4,6 +4,8 @@ import * as Helpers from "../resources/helpers";
 import * as C from "../resources/constants";
 import Playlists from "./playlists";
 import { PlaylistDetails } from "../types";
+import path from "path";
+import ImageDownloader from "./image";
 
 const userPlaylistCrawler = async () => {
 	const playlistUtil = new Playlists();
@@ -25,7 +27,7 @@ const userPlaylistCrawler = async () => {
 	const totalInputUserPlaylists = await playlistUtil.getAllUserPlaylists(
 		recommedingUser
 	);
-	let inputPlaylists =
+	const inputPlaylists =
 		totalInputUserPlaylists.length > 20
 			? Helpers.getRandomItemsFromArray(totalInputUserPlaylists, 20)
 			: totalInputUserPlaylists;
@@ -91,10 +93,24 @@ const userPlaylistCrawler = async () => {
 		`userPlaylistCrawler() > Target Playlist >> ${JSON.stringify(newPlaylist)}`
 	);
 	if (newPlaylist) {
-		await playlistUtil.updatePlaylistCoverImage(
-			newPlaylist,
-			C.Relative_Playlist_Image_Path.recommendation
-		);
+		const coverArtsFilePaths: string[] = [];
+		try {
+			coverArtsFilePaths.push(
+				...(await new ImageDownloader().downloadCoverArts(5))
+			);
+		} catch (err) {
+			`makeRecommendationPlaylists() > Error In Downloading Cover Arts: ${err}`;
+		}
+		console.log(coverArtsFilePaths);
+		const fullFilePath = coverArtsFilePaths.length
+			? coverArtsFilePaths[
+					Math.floor(Math.random() * coverArtsFilePaths.length)
+			  ]
+			: path.resolve(
+					__dirname,
+					`../../src/${C.Relative_Playlist_Image_Path.recommendation}`
+			  );
+		await playlistUtil.updatePlaylistCoverImage(newPlaylist, fullFilePath);
 		const allRandomTracks: SpotifyApi.TrackObjectFull[] = [];
 
 		await Promise.all(

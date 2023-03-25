@@ -65,11 +65,18 @@ export const Browser_Executable_Path =
 
 export const Default_Server_Uptime_Minutes = 20;
 
+export const Relative_Image_Folder = "/resources/images";
+
 export const Relative_Playlist_Image_Path = {
-	random: "/resources/images/Random-Mix-Playlist.jpg",
-	weekly: "/resources/images/DiscoverWeekly-Mix-Playlist.jpg",
-	recommendation: "/resources/images/Recommendation_Mix.jpg",
+	random: `${Relative_Image_Folder}/Random-Mix-Playlist.jpg`,
+	weekly: `${Relative_Image_Folder}/DiscoverWeekly-Mix-Playlist.jpg`,
+	recommendation: `${Relative_Image_Folder}/Recommendation_Mix.jpg`,
 };
 
 export const DEFAULT_USER_PROFILE_URL =
 	"https://open.spotify.com/user/rajdeepde77?si=8af6aede337c43b3";
+
+export const Unsplash_API_Creds = {
+	clientId: process.env.UNSPLASH_API_CLIENT_ID || "",
+	clientSecret: process.env.UNSPLASH_API_CLIENT_SECRET || "",
+};

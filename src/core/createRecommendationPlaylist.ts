@@ -2,6 +2,8 @@ import Playlists from "./playlists";
 import * as Helpers from "../resources/helpers";
 import * as C from "../resources/constants";
 import { PlaylistDetails } from "../types";
+import path from "path";
+import ImageDownloader from "./image";
 
 const makeRecommendationPlaylists = async () => {
 	const playlistUtil = new Playlists();
@@ -38,22 +40,32 @@ const makeRecommendationPlaylists = async () => {
 		)}`
 	);
 	if (newPlaylist) {
+		const coverArtsFilePaths: string[] = [];
+		try {
+			coverArtsFilePaths.push(
+				...(await new ImageDownloader().downloadCoverArts(5))
+			);
+		} catch (err) {
+			`makeRecommendationPlaylists() > Error In Downloading Cover Arts: ${err}`;
+		}
+		console.log(coverArtsFilePaths);
+		const fullFilePath = coverArtsFilePaths.length
+			? coverArtsFilePaths[
+					Math.floor(Math.random() * coverArtsFilePaths.length)
+			  ]
+			: path.resolve(
+					__dirname,
+					`../../src/${C.Relative_Playlist_Image_Path.recommendation}`
+			  );
 		await playlistUtil.updatePlaylistCoverImage(
 			newPlaylist,
-			C.Relative_Playlist_Image_Path.recommendation
+			fullFilePath,
+			true
 		);
-
 		const lastPlayedTracks = await playlistUtil.getLastPlayedTracks();
 		const genres = await playlistUtil.getGenreRecommendations();
-		const randomLength = Math.floor(Math.random() * 3) + 2;
-		const selectedGenres = Helpers.getRandomItemsFromArray(
-			genres,
-			randomLength >= 3 ? 5 - randomLength : randomLength
-		);
-		const selectedTracks = Helpers.getRandomItemsFromArray(
-			lastPlayedTracks,
-			randomLength >= 3 ? randomLength : 5 - randomLength
-		);
+		const selectedGenres = Helpers.getRandomItemsFromArray(genres, 2);
+		const selectedTracks = Helpers.getRandomItemsFromArray(lastPlayedTracks, 3);
 		console.log(
 			`makeRecommendationPlaylists() > Selected Tracks for Seeding => ${selectedTracks
 				.map(i => i.name)
