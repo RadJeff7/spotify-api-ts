@@ -57,10 +57,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v3
         with:
-          name: Important Artfacts
+          name: Artfacts
           path: |
             screenshots
             token.json
-      - name: Download all workflow run artifacts
-        if: always()
-        uses: actions/download-artifact@v3

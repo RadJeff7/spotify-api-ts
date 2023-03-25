@@ -21,7 +21,6 @@ const main = async () => {
 		tokenFlowCompleted = true;
 	} catch (err) {
 		console.log(`tokenGenerator() > headless Browser Authentication > ${err}`);
-		await browserUtil.closeBrowserInstance();
 	}
 
 	if (tokenFlowCompleted) {

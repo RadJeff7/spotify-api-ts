@@ -1,5 +1,7 @@
 import assert from "assert";
 import Puppeteer, { Browser, ElementHandle, Page } from "puppeteer";
+import { PuppeteerScreenRecorder } from "puppeteer-screen-recorder";
+
 import * as C from "../resources/constants";
 import fs from "fs";
 
@@ -7,6 +9,8 @@ export default class BrowserClass {
 	private _browserUtil!: Browser;
 	private _loginPage!: Page;
 	private _authPage!: Page;
+	private _screenRecorder!: PuppeteerScreenRecorder;
+	private _errorPage: Page | undefined;
 
 	protected async getBrowserObj() {
 		try {
@@ -17,6 +21,7 @@ export default class BrowserClass {
 					ignoreHTTPSErrors: true,
 					args: [
 						"--start-maximized", // you can also use '--start-fullscreen'
+						"--window-size=1920,1040",
 					],
 				});
 				console.log(
@@ -26,9 +31,8 @@ export default class BrowserClass {
 				);
 			}
 		} catch (err) {
-			throw new Error(
-				`${this.constructor.name} > getBrowserObj() > Failure in opening Browser Instance: ${err}`
-			);
+			const errorStr = `${this.constructor.name} > getBrowserObj() > Failure in opening Browser Instance: ${err}`;
+			await this.handleErrors(errorStr);
 		}
 		// screenshots folder
 		if (fs.existsSync("./screenshots"))
@@ -44,6 +48,17 @@ export default class BrowserClass {
 					await this.getBrowserObj();
 				}
 				const page = await this._browserUtil.newPage();
+				await page.setViewport({ width: 1920, height: 1040 });
+				if (!this._screenRecorder) {
+					this._screenRecorder = new PuppeteerScreenRecorder(page);
+					const recordingStart = await this._screenRecorder.start(
+						`./screenshots/Auth-Token-Generation.mp4`
+					);
+					console.log(
+						`${this.constructor.name} > openSpotifyLoginPage() > Starting Screen Recording - ${recordingStart}`
+					);
+				}
+
 				await page.goto(`${C.host_url}/login`);
 
 				assert.ok(
@@ -56,25 +71,19 @@ export default class BrowserClass {
 					} > openSpotifyLoginPage() > Current Page: ${await page.title()}`
 				);
 				this._loginPage = page;
-				await page.screenshot({
-					path: `./screenshots/${this.constructor.name}-openSpotifyLoginPage-Initial.png`,
-					fullPage: true,
-				});
 			} catch (err) {
-				throw new Error(
-					`${this.constructor.name} > openSpotifyLoginPage() > Failure in Opening Spotify Login Page`
-				);
+				const errorStr = `${this.constructor.name} > openSpotifyLoginPage() > Failure in Opening Spotify Login Page`;
+				this._errorPage = this._loginPage ? this._loginPage : undefined;
+				await this.handleErrors(errorStr);
 			}
 		}
 	}
 
 	async handleSpotifyLogin() {
 		if (!(C.Spotify_User_Creds.email && C.Spotify_User_Creds.password)) {
-			throw new Error(
-				`${this.constructor.name} > handleSpotifyLogin() > Spotify User Creds are not filled - `
-			);
+			const errorStr = `${this.constructor.name} > handleSpotifyLogin() > Spotify User Creds are not filled - Skipping Browser Automation Flow`;
+			await this.handleErrors(errorStr);
 		}
-		console.log(`DEBUG: ${JSON.stringify(C.Spotify_User_Creds)}`);
 		try {
 			if (!this._loginPage) {
 				await this.openSpotifyLoginPage();
@@ -86,10 +95,6 @@ export default class BrowserClass {
 			const passwordField = await this._loginPage.$(`#login-password`);
 			assert.ok(passwordField, "Password Field could not be Found");
 			await passwordField.type(C.Spotify_User_Creds.password);
-			await this._loginPage.screenshot({
-				path: `./screenshots/${this.constructor.name}-handleSpotifyLogin-Filled.png`,
-				fullPage: true,
-			});
 			console.log(
 				`${
 					this.constructor.name
@@ -102,31 +107,17 @@ export default class BrowserClass {
 			)[0];
 			assert.ok(viewPassword, "View Password Could not be found");
 			await (viewPassword as ElementHandle<Element>).click();
-			await this._loginPage.screenshot({
-				path: `./screenshots/${this.constructor.name}-handleSpotifyLogin-password.png`,
-				fullPage: true,
-			});
 			const loginBtn = (await this._loginPage.$x("//*[text()='Log In']"))?.[0];
 			assert.ok(loginBtn, "Log In Button Could not be found");
 			await (loginBtn as ElementHandle<Element>).click();
-			await this._loginPage.screenshot({
-				path: `./screenshots/${this.constructor.name}-handleSpotifyLogin-Filled.png`,
-				fullPage: true,
-			});
 			await this._loginPage.waitForNavigation({
 				waitUntil: "domcontentloaded",
 			});
 			this._authPage = this._loginPage;
 		} catch (err) {
 			const errorStr = `${this.constructor.name} > handleSpotifyLogin() > Failure in handling Spotify Login Page: ${err}`;
-			console.log(errorStr);
-			const currPage = this._loginPage ? this._loginPage : undefined;
-			if (currPage)
-				await currPage.screenshot({
-					path: `./screenshots/${this.constructor.name}-handleSpotifyLogin-Error.png`,
-					fullPage: true,
-				});
-			throw new Error(errorStr);
+			this._errorPage = this._loginPage ? this._loginPage : undefined;
+			await this.handleErrors(errorStr);
 		}
 	}
 
@@ -136,10 +127,6 @@ export default class BrowserClass {
 				await this.handleSpotifyLogin();
 			}
 			assert.ok((await this._authPage.title()).includes(`Authorize`));
-			await this._authPage.screenshot({
-				path: `./screenshots/${this.constructor.name}-handleSpotifyAuthorization-Initial.png`,
-				fullPage: true,
-			});
 			console.log(
 				`${
 					this.constructor.name
@@ -154,37 +141,58 @@ export default class BrowserClass {
 			const bodyHTML = await this._authPage.evaluate(
 				() => document.documentElement.outerHTML
 			);
-			await this._authPage.screenshot({
-				path: `./screenshots/${this.constructor.name}-handleSpotifyAuthorization-Success.png`,
-				fullPage: true,
-			});
 			assert.ok(bodyHTML.includes(`Success!`), "Success Page not displayed");
 			console.log(
 				`${this.constructor.name} > handleSpotifyAuthorization() > Current Page Content: ${bodyHTML}`
 			);
 		} catch (err) {
 			const errorStr = `${this.constructor.name} > handleSpotifyAuthorization() > Failure in handling Spotify Login Page: ${err}`;
-			console.log(errorStr);
-			const currPage = this._authPage
+			this._errorPage = this._authPage
 				? this._authPage
 				: this._loginPage
 				? this._loginPage
 				: undefined;
-			if (currPage)
-				await currPage.screenshot({
-					path: `./screenshots/${this.constructor.name}-handleSpotifyAuthorization-Error.png`,
-					fullPage: true,
-				});
-			throw new Error(errorStr);
+			await this.handleErrors(errorStr);
 		}
 	}
 
 	async closeBrowserInstance() {
+		console.log(
+			`${this.constructor.name} > closeBrowserInstance() > Trying to stop screen-recorder and browser instance`
+		);
+		if (this._screenRecorder) {
+			const status = await this._screenRecorder.stop();
+			console.log(
+				`${this.constructor.name} > closeBrowserInstance() > Screen Recorder Status: ${status}`
+			);
+		}
+
 		if (this._browserUtil) {
 			console.log(
 				`${this.constructor.name} > closeBrowserInstance() > Browser Instance Closed`
 			);
 			this._browserUtil.close();
 		}
+	}
+
+	async handleErrors(errorMessage: string) {
+		const errStr = `${this.constructor.name} > handleErrors() > ${errorMessage}`;
+		console.log(errStr);
+
+		try {
+			if (this._errorPage) {
+				await this._errorPage.screenshot({
+					path: `./screenshots/${this.constructor.name}-handleErrors-Error.png`,
+					fullPage: true,
+				});
+			}
+		} catch (err) {
+			console.log(
+				`${this.constructor.name} > handleErrors() > unable to take Error screen shot`
+			);
+		}
+		await this.closeBrowserInstance();
+
+		throw new Error(errStr);
 	}
 }

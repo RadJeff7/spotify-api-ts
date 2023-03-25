@@ -55,6 +55,7 @@
 		"prettier": "^2.8.5",
 		"puppeteer": "^19.7.5",
 		"puppeteer-core": "^19.7.5",
+		"puppeteer-screen-recorder": "^2.1.2",
 		"rimraf": "^4.4.0",
 		"ts-node": "^10.9.1",
 		"typedoc": "^0.23.28",
