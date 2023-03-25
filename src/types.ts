@@ -15,3 +15,19 @@ export interface PlaylistDetails {
 	name: string;
 	owner?: string;
 }
+
+export interface TrackDetails {
+	name: string;
+	uri: string;
+	id: string;
+	primaryArtist: string;
+	featuringArtists?: string[];
+	album: string;
+	genres?: string;
+	duration?: string;
+	released?: string;
+}
+
+export interface RecentlyPlayedTrackDetails extends TrackDetails {
+	lastPlayedAt: string;
+}

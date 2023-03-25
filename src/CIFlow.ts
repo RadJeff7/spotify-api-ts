@@ -4,7 +4,7 @@ const utilSelected = process.env.UTIL_NAME || "all"; //use 'random' = randomPlay
 import {
 	Server,
 	PuppeteerBrowser,
-	makeRandomPlaylists,
+	makeRandomPlaylistsFromDailyMix,
 	createWeeklyArchiveFromDiscoverWeekly,
 } from "./core";
 const sleep = (ms = 5000) => new Promise(r => setTimeout(r, ms));
@@ -50,7 +50,7 @@ const main = async () => {
 				console.log(
 					`****** Started Running Function to create Random Playlist from Daily Mix ****** \n\n`
 				);
-				await makeRandomPlaylists();
+				await makeRandomPlaylistsFromDailyMix();
 				console.log(
 					`****** Completed Function to create Random Playlist from Daily Mix ******  \n\n`
 				);

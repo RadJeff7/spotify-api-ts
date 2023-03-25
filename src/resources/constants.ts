@@ -49,6 +49,12 @@ export const RandomArchivePlaylist = {
 		"Random Songs from Spotify Daily - created by spotify api 💥 - Maintained at 50 Songs",
 };
 
+export const RecommendationsPlaylist = {
+	name: "Spotify Recommendations Mix",
+	description:
+		"Random Songs from Spotify Recommendations - created by spotify api 🎶 - Maintained at 100 Songs",
+};
+
 export const Spotify_User_Creds = {
 	email: process.env.SPOTIFY_USER_EMAIL || "", //Mention User Email in .env file
 	password: process.env.SPOTIFY_USER_PASS || "", //Mention User password in .env file
@@ -62,4 +68,8 @@ export const Default_Server_Uptime_Minutes = 20;
 export const Relative_Playlist_Image_Path = {
 	random: "/resources/images/Random-Mix-Playlist.jpg",
 	weekly: "/resources/images/DiscoverWeekly-Mix-Playlist.jpg",
+	recommendation: "/resources/images/Recommendation_Mix.jpg",
 };
+
+export const DEFAULT_USER_PROFILE_URL =
+	"https://open.spotify.com/user/rajdeepde77?si=8af6aede337c43b3";
