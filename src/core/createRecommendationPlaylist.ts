@@ -1,8 +1,8 @@
-import { Playlists, ImageDownloader } from "../utilities";
+import { Playlists } from "../utilities";
 import * as Helpers from "../resources/helpers";
+import * as commons from "./commonFunctions";
 import * as C from "../resources/constants";
 import { PlaylistDetails } from "../types";
-import path from "path";
 
 const makeRecommendationPlaylists = async () => {
 	const playlistUtil = new Playlists();
@@ -13,19 +13,19 @@ const makeRecommendationPlaylists = async () => {
 
 	let newPlaylist: PlaylistDetails;
 	const archivePlaylistExists = playlists.find(
-		i => i.name === C.RecommendationsPlaylist.name
+		i => i.name === C.RecommendationsPlaylistFromSpotify.name
 	);
 	if (!archivePlaylistExists) {
 		console.log(
-			`makeRecommendationPlaylists() > ${C.RecommendationsPlaylist.name} needs to be created`
+			`makeRecommendationPlaylists() > ${C.RecommendationsPlaylistFromSpotify.name} needs to be created`
 		);
 		newPlaylist = await playlistUtil.createNewPlaylist(
-			C.RecommendationsPlaylist.name,
-			C.RecommendationsPlaylist.description
+			C.RecommendationsPlaylistFromSpotify.name,
+			C.RecommendationsPlaylistFromSpotify.description
 		);
 	} else {
 		console.log(
-			`makeRecommendationPlaylists() > ${C.RecommendationsPlaylist.name} already exists`
+			`makeRecommendationPlaylists() > ${C.RecommendationsPlaylistFromSpotify.name} already exists`
 		);
 		newPlaylist = {
 			id: archivePlaylistExists.id,
@@ -39,27 +39,9 @@ const makeRecommendationPlaylists = async () => {
 		)}`
 	);
 	if (newPlaylist) {
-		const coverArtsFilePaths: string[] = [];
-		try {
-			coverArtsFilePaths.push(
-				...(await new ImageDownloader().downloadCoverArts(5))
-			);
-		} catch (err) {
-			`makeRecommendationPlaylists() > Error In Downloading Cover Arts: ${err}`;
-		}
-		console.log(coverArtsFilePaths);
-		const fullFilePath = coverArtsFilePaths.length
-			? coverArtsFilePaths[
-					Math.floor(Math.random() * coverArtsFilePaths.length)
-			  ]
-			: path.resolve(
-					__dirname,
-					`../../src/${C.Relative_Playlist_Image_Path.recommendation}`
-			  );
-		await playlistUtil.updatePlaylistCoverImage(
-			newPlaylist,
-			fullFilePath,
-			true
+		await commons.updatePlaylistCoverImagesFromUnsplashUtil(
+			playlistUtil,
+			newPlaylist
 		);
 		const lastPlayedTracks = await playlistUtil.getLastPlayedTracks();
 		const genres = await playlistUtil.getGenreRecommendations();

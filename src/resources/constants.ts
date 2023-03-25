@@ -49,10 +49,16 @@ export const RandomArchivePlaylist = {
 		"Random Songs from Spotify Daily - created by spotify api 💥 - Maintained at 50 Songs",
 };
 
-export const RecommendationsPlaylist = {
+export const RecommendationsPlaylistFromSpotify = {
 	name: "Spotify Recommendations Mix",
 	description:
 		"Random Songs from Spotify Recommendations - created by spotify api 🎶 - Maintained at 100 Songs",
+};
+
+export const RecommendationsPlaylistFromUser = {
+	name: "User Recommendations",
+	description:
+		"Random Songs picked from USER's playlists - created by spotify api - profile URL: ",
 };
 
 export const Spotify_User_Creds = {
@@ -73,9 +79,10 @@ export const Relative_Playlist_Image_Path = {
 	recommendation: `${Relative_Image_Folder}/Recommendation_Mix.jpg`,
 };
 
-export const DEFAULT_USER_PROFILE_URL =
-	"https://open.spotify.com/user/rajdeepde77?si=8af6aede337c43b3";
-
+export const DEFAULT_SPOTIFY_USER = {
+	username: "RadJeff",
+	profile_url: "https://open.spotify.com/user/rajdeepde77?si=8af6aede337c43b3",
+};
 export const Unsplash_API_Creds = {
 	clientId: process.env.UNSPLASH_API_CLIENT_ID || "",
 	clientSecret: process.env.UNSPLASH_API_CLIENT_SECRET || "",

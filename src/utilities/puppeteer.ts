@@ -46,11 +46,11 @@ export default class BrowserClass {
 				await page.setViewport({ width: 1920, height: 1040 });
 				if (!this._screenRecorder) {
 					this._screenRecorder = new PuppeteerScreenRecorder(page);
-					const recordingStart = await this._screenRecorder.start(
+					await this._screenRecorder.start(
 						`./screenshots/Auth-Token-Generation.mp4`
 					);
 					console.log(
-						`${this.constructor.name} > openSpotifyLoginPage() > Starting Screen Recording - ${recordingStart}`
+						`${this.constructor.name} > openSpotifyLoginPage() > Starting Screen Recording`
 					);
 				}
 
@@ -158,7 +158,9 @@ export default class BrowserClass {
 		if (this._screenRecorder) {
 			const status = await this._screenRecorder.stop();
 			console.log(
-				`${this.constructor.name} > closeBrowserInstance() > Screen Recorder Status: ${status}`
+				`${
+					this.constructor.name
+				} > closeBrowserInstance() > Screen Recorder Status: ${status} - Duration: ${this._screenRecorder.getRecordDuration()}`
 			);
 		}
 

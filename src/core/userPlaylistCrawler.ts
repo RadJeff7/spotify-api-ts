@@ -2,9 +2,9 @@ import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 import * as Helpers from "../resources/helpers";
 import * as C from "../resources/constants";
-import { Playlists, ImageDownloader } from "../utilities";
+import * as commons from "./commonFunctions";
+import { Playlists } from "../utilities";
 import { PlaylistDetails } from "../types";
-import path from "path";
 
 const userPlaylistCrawler = async () => {
 	const playlistUtil = new Playlists();
@@ -59,11 +59,15 @@ const userPlaylistCrawler = async () => {
 		);
 	}
 
-	const targetPlaylistDetails = C.RecommendationsPlaylist;
+	const targetPlaylistDetails = C.RecommendationsPlaylistFromUser;
 	targetPlaylistDetails.name = targetPlaylistDetails.name.replace(
-		/spotify/gi,
+		/user/gi,
 		userDetails.display_name || "User"
 	);
+	targetPlaylistDetails.description = `${targetPlaylistDetails.description.replace(
+		/user/gi,
+		userDetails.display_name || "User"
+	)}${completeProfileLink}`;
 
 	let newPlaylist: PlaylistDetails;
 
@@ -92,24 +96,17 @@ const userPlaylistCrawler = async () => {
 		`userPlaylistCrawler() > Target Playlist >> ${JSON.stringify(newPlaylist)}`
 	);
 	if (newPlaylist) {
-		const coverArtsFilePaths: string[] = [];
-		try {
-			coverArtsFilePaths.push(
-				...(await new ImageDownloader().downloadCoverArts(5))
-			);
-		} catch (err) {
-			`makeRecommendationPlaylists() > Error In Downloading Cover Arts: ${err}`;
-		}
-		console.log(coverArtsFilePaths);
-		const fullFilePath = coverArtsFilePaths.length
-			? coverArtsFilePaths[
-					Math.floor(Math.random() * coverArtsFilePaths.length)
-			  ]
-			: path.resolve(
-					__dirname,
-					`../../src/${C.Relative_Playlist_Image_Path.recommendation}`
-			  );
-		await playlistUtil.updatePlaylistCoverImage(newPlaylist, fullFilePath);
+		const forcefulImageUpdate =
+			userDetails.display_name === C.DEFAULT_SPOTIFY_USER.username
+				? false
+				: true;
+
+		await commons.updatePlaylistCoverImagesFromUnsplashUtil(
+			playlistUtil,
+			newPlaylist,
+			forcefulImageUpdate
+		);
+
 		const allRandomTracks: SpotifyApi.TrackObjectFull[] = [];
 
 		await Promise.all(
@@ -143,17 +140,15 @@ async function askForUserProfileLink() {
 	const rl = readline.createInterface({ input, output });
 	try {
 		answer = await rl.question(
-			`Provide User Profile Link: [example: ${C.DEFAULT_USER_PROFILE_URL}]: \n\n`,
+			`Provide User Profile Link: [example: ${C.DEFAULT_SPOTIFY_USER.profile_url}]: \n\n`,
 			{ signal }
 		);
 		console.log(`Thank you for sharing the profile Link`);
-
-		return answer;
 	} catch (err) {
 		console.log(
 			`You took too long. Try again within ${timeoutInSeconds} seconds. - Using Default User Profile`
 		);
-		answer = C.DEFAULT_USER_PROFILE_URL;
+		answer = C.DEFAULT_SPOTIFY_USER.profile_url;
 	} finally {
 		rl.close();
 	}
