@@ -1,6 +1,6 @@
 # Spotify - Typescipt Utilities
 
-[![Node.js Build CI](https://github.com/RadJeff7/spotify-api-ts/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/RadJeff7/spotify-api-ts/actions/workflows/build.yml)
+[![Node.js Build CI](https://github.com/RadJeff7/spotify-api-ts/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/RadJeff7/spotify-api-ts/actions/workflows/build.yml) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=RadJeff7_spotify-api-ts&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=RadJeff7_spotify-api-ts)
 
 This repo contains various utilities automated using Spotify APIs with Typescript
 
