@@ -10,9 +10,10 @@
 		"prepublish": "npm run build",
 		"docs": "typedoc --out docs",
 		"precommit": "lint-staged",
-		"start:token": "node ./dist/tokenGenerator",
-		"main": "node ./dist/main",
-		"ciflow": "node ./dist/CIFlow"
+		"start:token": "node ./dist/runner/tokenGenerator",
+		"main": "node ./dist/runner/main",
+		"ciflow": "node ./dist/runner/CIFlow",
+		"profile:crawl": "node ./dist/runner/profileCrawler"
 	},
 	"husky": {
 		"hooks": {

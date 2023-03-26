@@ -5,7 +5,7 @@ import {
 	makeRandomPlaylistsFromDailyMix,
 	createWeeklyArchiveFromDiscoverWeekly,
 	createRecommendationPlaylist,
-} from "./utilities";
+} from "../utilities";
 const sleep = (ms = 5000) => new Promise(r => setTimeout(r, ms));
 const main = async () => {
 	if (utilSelected.match(/random|all/i)) {

@@ -16,7 +16,9 @@ export const updatePlaylistCoverImagesFromUnsplashUtil = async (
 				...(await new ImageDownloader().downloadCoverArts(5))
 			);
 		} catch (err) {
-			`makeRecommendationPlaylists() > Error In Downloading Cover Arts: ${err}`;
+			console.log(
+				`makeRecommendationPlaylists() > Error In Downloading Cover Arts: ${err}`
+			);
 		}
 	}
 	const fullFilePath = coverArtsFilePaths.length
