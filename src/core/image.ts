@@ -6,6 +6,7 @@ import { createApi } from "unsplash-js";
 import { Authorization } from "../types";
 import * as C from "../resources/constants";
 import * as Helpers from "../resources/helpers";
+import logger from "../resources/logger";
 type UNSPLASH_AUTH = Pick<Authorization, "clientId">;
 
 export default class ImageDownloader {
@@ -29,15 +30,15 @@ export default class ImageDownloader {
 	protected async getUnsplashUtil() {
 		if (!this._unsplashUtil) {
 			if (!this._unsplashAPIAuth.clientId) {
-				throw new Error(
-					`${this.constructor.name} > getUnsplashUtil() > Client ID not set`
-				);
+				const errStr = `${this.constructor.name} > getUnsplashUtil() > Client ID not set`;
+				logger.error(errStr);
+				throw new Error(errStr);
 			}
 
 			this._unsplashUtil = createApi({
 				accessKey: this._unsplashAPIAuth.clientId,
 			});
-			console.log(
+			logger.info(
 				`${this.constructor.name} > getUnsplashUtil() > Unsplash Util is created`
 			);
 		}
@@ -79,27 +80,27 @@ export default class ImageDownloader {
 			};
 			const searchRes = await this._unsplashUtil.search.getPhotos(searchConfig);
 			const urls = searchRes.response?.results.map(i => i.urls.small);
-			console.log(
+			logger.info(
 				`${
 					this.constructor.name
 				} > getImageURLsBySearch() > Search Params >> ${JSON.stringify(
 					searchConfig
 				)} >> Images Found >> ${urls?.length}`
 			);
-			console.log();
-			if (!urls || !urls.length)
-				throw new Error(
-					`${
-						this.constructor.name
-					} > getImageURLsBySearch() > Valid URLs not found - Check Search Params >> ${JSON.stringify(
-						searchConfig
-					)}`
-				);
+			if (!urls || !urls.length) {
+				const errStr = `${
+					this.constructor.name
+				} > getImageURLsBySearch() > Valid URLs not found - Check Search Params >> ${JSON.stringify(
+					searchConfig
+				)}`;
+				logger.error(errStr);
+				throw new Error(errStr);
+			}
 			return urls;
 		} catch (err) {
-			throw new Error(
-				`${this.constructor.name} > getImageURLsBySearch() > ${err}`
-			);
+			const errStr = `${this.constructor.name} > getImageURLsBySearch() > ${err}`;
+			logger.error(errStr);
+			throw new Error(errStr);
 		}
 	}
 
@@ -142,7 +143,7 @@ export default class ImageDownloader {
 		);
 		assert.ok(
 			imageFilePaths.length,
-			"Cover Arts are downloaded and Ready for use"
+			`${this.constructor.name} > downloadCoverArts() > Cover Arts are Not downloaded`
 		);
 		return imageFilePaths;
 	}

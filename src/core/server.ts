@@ -5,6 +5,7 @@ import Base from "./base";
 import moment from "moment";
 import fs from "fs";
 import assert from "assert";
+import logger from "../resources/logger";
 
 export default class Server extends Base {
 	protected _expressUtil: ReturnType<typeof Express>;
@@ -20,7 +21,7 @@ export default class Server extends Base {
 				"test",
 				true
 			);
-			console.log(
+			logger.info(
 				`${this.constructor.name} > login() > Login Page Invoked => Authorize URL: ${authorizeURL}`
 			);
 			res.redirect(authorizeURL);
@@ -59,7 +60,7 @@ export default class Server extends Base {
 				JSON.stringify(this._userToken, null, 2)
 			);
 
-			console.log(
+			logger.info(
 				`${this.constructor.name} > callBack() > Sucessfully retreived access token. Expires in ${expires_in} s.`
 			);
 			res.send("Success! You can now close the window.");
@@ -68,7 +69,7 @@ export default class Server extends Base {
 				const data = await this._spUtil.refreshAccessToken();
 				const access_token = data.body["access_token"];
 				const new_expiry = data.body["expires_in"];
-				console.log(
+				logger.info(
 					`${this.constructor.name} > callBack() > The access token has been refreshed!`
 				);
 				this._spUtil.setAccessToken(access_token);
@@ -90,7 +91,7 @@ export default class Server extends Base {
 				"AuthDetails are not set - Check ClientId and Client Secret Values"
 			);
 		} catch (err) {
-			console.log(`${this.constructor.name} > start() > Error: ${err}`);
+			logger.error(`${this.constructor.name} > start() > Error: ${err}`);
 			return;
 		}
 
@@ -98,7 +99,7 @@ export default class Server extends Base {
 		await this.callBack();
 
 		const server = this._expressUtil.listen(8888, () => {
-			console.log(
+			logger.info(
 				`${this.constructor.name} > start() > Http Server is UP. go to ${C.host_url}/login`
 			);
 		});

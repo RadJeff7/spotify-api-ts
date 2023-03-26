@@ -9,6 +9,7 @@ import * as Helpers from "../resources/helpers";
 import Base from "./base";
 import fs from "fs";
 import moment from "moment";
+import logger from "../resources/logger";
 
 export default class Playlists extends Base {
 	constructor(auth?: Authorization) {
@@ -21,11 +22,15 @@ export default class Playlists extends Base {
 			const userResponse = !userid
 				? await this._spUtil.getMe()
 				: await this._spUtil.getUser(userid);
-			return userResponse.body;
-		} catch (err) {
-			throw new Error(
-				`${this.constructor.name} > getUserDetails() > Error: ${err}`
+			const userBody = userResponse.body;
+			logger.info(
+				`${this.constructor.name} > getUserDetails() > User Name: ${userBody.display_name}`
 			);
+			return userBody;
+		} catch (err) {
+			const errStr = `${this.constructor.name} > getUserDetails() > Error: ${err}`;
+			logger.error(errStr);
+			throw new Error(errStr);
 		}
 	}
 
@@ -45,7 +50,7 @@ export default class Playlists extends Base {
 				  });
 			/* eslint-enable */
 			const totalPlaylists = playlistResponse.body.total;
-			console.log(
+			logger.info(
 				`${this.constructor.name} > getAllUserPlaylists() > User: ${
 					userid ?? "currentUser"
 				} Total Playlists Present: ${totalPlaylists}, Fetched ${
@@ -70,7 +75,7 @@ export default class Playlists extends Base {
 				/* eslint-enable */
 				completePlaylists.push(...playlistResponse.body.items.map(i => i));
 				count += limit;
-				console.log(
+				logger.info(
 					`${this.constructor.name} > getAllUserPlaylists() > User: ${
 						userid ?? "currentUser"
 					} Total Playlists Present: ${totalPlaylists}, Fetched ${
@@ -81,11 +86,13 @@ export default class Playlists extends Base {
 				);
 			}
 		} catch (err) {
-			throw new Error(
-				`${this.constructor.name} > getAllUserPlaylists() > User: ${
-					userid ?? "currentUser"
-				} Error: ${err}`
-			);
+			const errStr = `${
+				this.constructor.name
+			} > getAllUserPlaylists() > User: ${
+				userid ?? "currentUser"
+			} Error: ${err}`;
+			logger.error(errStr);
+			throw new Error(errStr);
 		}
 		return completePlaylists;
 	}
@@ -101,7 +108,7 @@ export default class Playlists extends Base {
 				{ limit: limit }
 			);
 			const totalTracksPresent = playlistTracksResponse.body.total;
-			console.log(
+			logger.info(
 				`${
 					this.constructor.name
 				} > getAllTracksForGivenPlaylist() > Playlist: ${
@@ -127,7 +134,7 @@ export default class Playlists extends Base {
 					if (i.track) allTracksArr.push(i.track);
 				});
 				count += limit;
-				console.log(
+				logger.info(
 					`${
 						this.constructor.name
 					} > getAllTracksForGivenPlaylist() > Playlist: ${
@@ -140,9 +147,9 @@ export default class Playlists extends Base {
 				);
 			}
 		} catch (err) {
-			throw new Error(
-				`${this.constructor.name} > getAllTracksForGivenPlaylist() > Playlist: ${playlist.name} > Error: ${err}`
-			);
+			const errStr = `${this.constructor.name} > getAllTracksForGivenPlaylist() > Playlist: ${playlist.name} > Error: ${err}`;
+			logger.error(errStr);
+			throw new Error(errStr);
 		}
 		return allTracksArr;
 	}
@@ -168,7 +175,7 @@ export default class Playlists extends Base {
 				201,
 				`${this.constructor.name} > Playlist: ${playlist.name} > Adding Tracks To Playlist not successful`
 			);
-			console.log(
+			logger.info(
 				`${this.constructor.name} > Playlist: ${
 					playlist.name
 				} > addTracksToPlaylist() > Successfully updated the playlist With Songs -> ${inputTracks
@@ -176,9 +183,9 @@ export default class Playlists extends Base {
 					.join(" , ")}\n`
 			);
 		} catch (err) {
-			throw new Error(
-				`${this.constructor.name} > Playlist: ${playlist.name} > addTracksToPlaylist() > Error: ${err}`
-			);
+			const errStr = `${this.constructor.name} > Playlist: ${playlist.name} > addTracksToPlaylist() > Error: ${err}`;
+			logger.error(errStr);
+			throw new Error(errStr);
 		}
 	}
 
@@ -198,7 +205,7 @@ export default class Playlists extends Base {
 				201,
 				`${this.constructor.name} > Creation of Playlist: ${name} not successfull`
 			);
-			console.log(
+			logger.info(
 				`${this.constructor.name} > createNewPlaylist() > Created new Playlist - name: ${name}`
 			);
 			return {
@@ -207,9 +214,9 @@ export default class Playlists extends Base {
 				owner: createPlaylistRes.body.owner?.display_name,
 			};
 		} catch (err) {
-			throw new Error(
-				`${this.constructor.name} > createNewPlaylist() > Error: ${err}`
-			);
+			const errStr = `${this.constructor.name} > createNewPlaylist() > Error: ${err}`;
+			logger.error(errStr);
+			throw new Error(errStr);
 		}
 	}
 
@@ -219,7 +226,7 @@ export default class Playlists extends Base {
 	) {
 		try {
 			this.setUserTokens();
-			console.log(
+			logger.info(
 				`${this.constructor.name} > updatePlaylistWithSongs() > Playlist: ${playlist.name} > New songs to be added in Playlist >> ${newTracks.length}`
 			);
 			const tracksInPlaylist = await this.getAllTracksForGivenPlaylist(
@@ -231,16 +238,16 @@ export default class Playlists extends Base {
 						existingTrack => existingTrack.uri === newTrack.uri
 					)
 			);
-			console.log(
+			logger.info(
 				`${this.constructor.name} > updatePlaylistWithSongs() > Playlist: ${playlist.name} > New and Unique songs to be added in Playlist >> ${uniqueTracks.length}`
 			);
 			if (uniqueTracks.length) {
 				await this.addTracksToPlaylist(playlist, uniqueTracks);
 			}
 		} catch (err) {
-			throw new Error(
-				`${this.constructor.name} > updatePlaylistWithSongs() > Playlist: ${playlist.name} > Error: ${err}`
-			);
+			const errStr = `${this.constructor.name} > updatePlaylistWithSongs() > Playlist: ${playlist.name} > Error: ${err}`;
+			logger.error(errStr);
+			throw new Error(errStr);
 		}
 	}
 
@@ -249,14 +256,14 @@ export default class Playlists extends Base {
 		try {
 			this.setUserTokens();
 			const allTracksArr = await this.getAllTracksForGivenPlaylist(playlist);
-			console.log(
+			logger.info(
 				`${this.constructor.name} > getRandomSongsFromPlaylist() > Playlist: ${playlist.name} > Total Tracks Present: ${allTracksArr.length} - Fetching random ${count} Tracks`
 			);
 			randomTracksArr = Helpers.getRandomItemsFromArray(allTracksArr, count);
 		} catch (err) {
-			throw new Error(
-				`${this.constructor.name} > getRandomSongsFromPlaylist() > Playlist: ${playlist.name} > Error: ${err}`
-			);
+			const errStr = `${this.constructor.name} > getRandomSongsFromPlaylist() > Playlist: ${playlist.name} > Error: ${err}`;
+			logger.error(errStr);
+			throw new Error(errStr);
 		}
 		return randomTracksArr;
 	}
@@ -277,13 +284,13 @@ export default class Playlists extends Base {
 				200,
 				`${this.constructor.name} > Playlist: ${playlist.name} > Deletion of Tracks To Playlist not successful`
 			);
-			console.log(
+			logger.info(
 				`${this.constructor.name} > Playlist: ${playlist.name} > deleteSongsFromPlaylist() > Successfully updated the playlist`
 			);
 		} catch (err) {
-			throw new Error(
-				`${this.constructor.name} > Playlist: ${playlist.name} > deleteSongsFromPlaylist() > Error: ${err}`
-			);
+			const errStr = `${this.constructor.name} > Playlist: ${playlist.name} > deleteSongsFromPlaylist() > Error: ${err}`;
+			logger.error(errStr);
+			throw new Error(errStr);
 		}
 	}
 
@@ -292,11 +299,11 @@ export default class Playlists extends Base {
 			this.setUserTokens();
 			const allTracksArr = await this.getAllTracksForGivenPlaylist(playlist);
 			const playlistLength = allTracksArr.length;
-			console.log(
+			logger.info(
 				`${this.constructor.name} > maintainPlaylistsAtSize() > Playlist: ${playlist.name} > Total Tracks Present: ${playlistLength}`
 			);
 			if (playlistLength <= size) {
-				console.log(
+				logger.info(
 					`${this.constructor.name} > maintainPlaylistsAtSize() > Playlist: ${playlist.name} > Playlist size is within Max Size(${size})`
 				);
 				return;
@@ -306,7 +313,7 @@ export default class Playlists extends Base {
 					deletionSize = deletionSize >= 100 ? 100 : deletionSize;
 					const randomSongsForDeletion: SpotifyApi.TrackObjectFull[] =
 						Helpers.getRandomItemsFromArray(allTracksArr, deletionSize);
-					console.log(
+					logger.info(
 						`${this.constructor.name} > maintainPlaylistsAtSize() > Playlist: ${
 							playlist.name
 						} > Playlist size(${playlistLength}) is more than Max Size(${size}) - Deleting ${deletionSize} songs -> ${randomSongsForDeletion
@@ -322,9 +329,9 @@ export default class Playlists extends Base {
 				}
 			}
 		} catch (err) {
-			throw new Error(
-				`${this.constructor.name} > maintainPlaylistsAtSize() > Playlist: ${playlist.name} > Error: ${err}`
-			);
+			const errStr = `${this.constructor.name} > maintainPlaylistsAtSize() > Playlist: ${playlist.name} > Error: ${err}`;
+			logger.error(errStr);
+			throw new Error(errStr);
 		}
 	}
 
@@ -351,7 +358,7 @@ export default class Playlists extends Base {
 			}
 			if (updateRequired) {
 				if (fs.existsSync(fullFilePath)) {
-					console.log(
+					logger.info(
 						`${this.constructor.name} > updateAutogeneratedPlaylistImages() > Playlist: ${playlist.name} > Trying to update playlist Image`
 					);
 					const imgbase64URI = fs.readFileSync(fullFilePath, "base64");
@@ -360,19 +367,19 @@ export default class Playlists extends Base {
 						imgbase64URI
 					);
 				} else {
-					console.log(
+					logger.error(
 						`${this.constructor.name} > updateAutogeneratedPlaylistImages() > Playlist: ${playlist.name} > ImagePath not Found`
 					);
 				}
 			} else {
-				console.log(
+				logger.info(
 					`${this.constructor.name} > updateAutogeneratedPlaylistImages() > Playlist: ${playlist.name} > Playlist already has User Uploaded image`
 				);
 			}
 		} catch (err) {
-			throw new Error(
-				`${this.constructor.name} > updateAutogeneratedPlaylistImages() > Playlist: ${playlist.name} > Error: ${err}`
-			);
+			const errStr = `${this.constructor.name} > updateAutogeneratedPlaylistImages() > Playlist: ${playlist.name} > Error: ${err}`;
+			logger.error(errStr);
+			throw new Error(errStr);
 		}
 	}
 
@@ -402,11 +409,14 @@ export default class Playlists extends Base {
 						),
 					};
 				});
+			logger.info(
+				`${this.constructor.name} > getLastPlayedTracks() > Last Played Tracks >> ${consolidatedTrackDetailsArr.length}`
+			);
 			return consolidatedTrackDetailsArr;
 		} catch (err) {
-			throw new Error(
-				`${this.constructor.name} > getLastPlayedTracks() > Error: ${err}`
-			);
+			const errStr = `${this.constructor.name} > getLastPlayedTracks() > Error: ${err}`;
+			logger.error(errStr);
+			throw new Error(errStr);
 		}
 	}
 
@@ -416,11 +426,14 @@ export default class Playlists extends Base {
 			const genreRecommendationsRes =
 				await this._spUtil.getAvailableGenreSeeds();
 			const recommendedGenres = genreRecommendationsRes.body.genres;
+			logger.info(
+				`${this.constructor.name} > getGenreRecommendations() > Genres Recommendations >> ${recommendedGenres.length}`
+			);
 			return recommendedGenres;
 		} catch (err) {
-			throw new Error(
-				`${this.constructor.name} > getGenreRecommendations() > Error: ${err}`
-			);
+			const errStr = `${this.constructor.name} > getGenreRecommendations() > Error: ${err}`;
+			logger.error(errStr);
+			throw new Error(errStr);
 		}
 	}
 
@@ -453,16 +466,16 @@ export default class Playlists extends Base {
 				seed_genres: inputGenres,
 				market: "IN",
 			};
-			console.dir(requestConfig, { depth: null });
+			logger.debug(
+				`${
+					this.constructor.name
+				} > getRecommendedTracks() > Recommendation Request Object: ${JSON.stringify(
+					requestConfig
+				)}`
+			);
 			const recommedationsResponse = await this._spUtil.getRecommendations(
 				requestConfig
 			);
-
-			fs.writeFileSync(
-				"./recommedationsResponse.json",
-				JSON.stringify(recommedationsResponse.body, null, 2)
-			);
-
 			const recommendedTracks: TrackDetails[] =
 				recommedationsResponse.body.tracks.map(track => {
 					return {
@@ -479,7 +492,13 @@ export default class Playlists extends Base {
 						released: track.album.release_date,
 					};
 				});
-
+			logger.debug(
+				`${
+					this.constructor.name
+				} > getRecommendedTracks() > Recommendation Request Object: ${JSON.stringify(
+					requestConfig
+				)} >> Recommedated Tracks Received >> ${recommendedTracks.length}`
+			);
 			return recommendedTracks;
 		} catch (err) {
 			throw new Error(
