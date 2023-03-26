@@ -1,8 +1,8 @@
 import dotenv from "dotenv";
 dotenv.config();
-import * as Helpers from "./helpers";
 import * as log4js from "log4js";
 import path from "path";
+import fs from "fs";
 
 const keepLogs = (process.env.KEEP_LOGS || "false") === "true";
 
@@ -11,13 +11,18 @@ class Logger {
 
 	setLogger() {
 		if (!this._logger) {
+			const logFileName = "applogs.log";
 			if (!keepLogs) {
-				Helpers.deleteAndCreateFolder(path.resolve(__dirname, `../../logs/`));
+				const logFilePath = path.resolve(
+					__dirname,
+					`../../logs/${logFileName}`
+				);
+				if (fs.existsSync(logFilePath)) fs.unlinkSync(logFilePath);
 			}
 
 			log4js.configure({
 				appenders: {
-					logs: { type: "file", filename: "./logs/applogs.log" },
+					logs: { type: "file", filename: `./logs/${logFileName}` },
 				},
 				categories: { default: { appenders: ["logs"], level: "all" } },
 			});

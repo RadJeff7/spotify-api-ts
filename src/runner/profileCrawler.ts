@@ -36,13 +36,13 @@ async function askForUserProfileLink() {
 }
 
 const PlaylistCrawlerWithUserProfileURLInput = async () => {
-	console.log(
-		`****** Started Running Function to create Random Playlist from User Profile URL  ****** \n\n`
-	);
-
 	const completeProfileLink = await askForUserProfileLink();
 	console.log(
 		`PlaylistCrawlerWithInput() > User Profile URL: ${completeProfileLink}`
+	);
+
+	console.log(
+		`****** Started Running Function to create Random Playlist from User Profile URL  ****** \n\n`
 	);
 
 	const recommedingUser = completeProfileLink
