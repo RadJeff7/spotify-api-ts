@@ -1,47 +1,22 @@
-import * as readline from "node:readline/promises";
-import { stdin as input, stdout as output } from "node:process";
 import * as Helpers from "../resources/helpers";
 import * as C from "../resources/constants";
 import * as commons from "./commonFunctions";
 import { Playlists } from "../core";
 import { PlaylistDetails } from "../types";
 
-const userPlaylistCrawler = async () => {
+const GivenUsersPlaylistCrawler = async (userId: string) => {
 	const playlistUtil = new Playlists();
-	const completeProfileLink = await askForUserProfileLink();
-	console.log(
-		`userPlaylistCrawler() > User Profile URL: ${completeProfileLink}`
-	);
-
-	const recommedingUser = completeProfileLink
-		.split("?si")[0]
-		.split("/user/")[1];
-	console.log(`userPlaylistCrawler() > User ID: ${recommedingUser}`);
-
+	const recommedingUser = userId;
+	console.log(`userPlaylistCrawler() > Input User ID: ${recommedingUser}`);
 	const userDetails = await playlistUtil.getUserDetails(recommedingUser);
 	console.log(
 		`userPlaylistCrawler() > Recommending User: ${userDetails.display_name} - Followers: ${userDetails.followers?.total}`
 	);
-
 	const totalInputUserPlaylists = await playlistUtil.getAllUserPlaylists(
 		recommedingUser
 	);
-	const inputPlaylists =
-		totalInputUserPlaylists.length > 20
-			? Helpers.getRandomItemsFromArray(totalInputUserPlaylists, 20)
-			: totalInputUserPlaylists;
-	console.log(
-		`userPlaylistCrawler() > Recommending User: ${userDetails.display_name} - Total User Playlists >> ${totalInputUserPlaylists.length}`
-	);
-	console.log(
-		`userPlaylistCrawler() > User: ${
-			userDetails.display_name
-		} - Playlists selected for mix >> ${
-			inputPlaylists.length
-		} >> Names: ${inputPlaylists.map(i => i.name).join(", ")} \n\n`
-	);
-
-	const sourcePlaylists: PlaylistDetails[] = inputPlaylists
+	// simplify Playlist Object and do required Filters
+	const inputPlaylists: PlaylistDetails[] = totalInputUserPlaylists
 		.map(playlist => {
 			return {
 				id: playlist.id,
@@ -50,41 +25,55 @@ const userPlaylistCrawler = async () => {
 			};
 		})
 		.filter(i => {
-			return !i.owner?.toLowerCase().includes("spotify");
+			return !i.owner?.match(/spotify/i);
 		});
+	// setting Max Limit as 20 playlist per user
+	const sourcePlaylists =
+		inputPlaylists.length > 20
+			? Helpers.getRandomItemsFromArray(inputPlaylists, 20)
+			: inputPlaylists;
+	console.log(
+		`userPlaylistCrawler() > Recommending User: ${userDetails.display_name} - Total User Playlists >> ${totalInputUserPlaylists.length}`
+	);
+	console.log(
+		`userPlaylistCrawler() > Recommending User: ${
+			userDetails.display_name
+		} - Playlists selected for mix >> ${
+			sourcePlaylists.length
+		} >> Names: ${sourcePlaylists.map(i => i.name).join(", ")} \n\n`
+	);
 
 	if (!sourcePlaylists || !sourcePlaylists.length) {
 		throw new Error(
-			`userPlaylistCrawler() > Source Playlists not found - skipping rest of the process`
+			`userPlaylistCrawler() > Recommending User: ${userDetails.display_name} - Source Playlists not found - skipping rest of the process`
 		);
 	}
-
-	const targetPlaylistDetails = C.RecommendationsPlaylistFromUser;
-	targetPlaylistDetails.name = targetPlaylistDetails.name.replace(
+	// Update Playlist name and Description - new playlist will be created if required - else tracks will be appended
+	const newPlaylistName = C.RecommendationsPlaylistFromUser.name.replace(
 		/user/gi,
 		userDetails.display_name || "User"
 	);
-	targetPlaylistDetails.description = `${targetPlaylistDetails.description.replace(
+	const newPlaylistDescription = `${C.RecommendationsPlaylistFromUser.description.replace(
 		/user/gi,
 		userDetails.display_name || "User"
-	)}${completeProfileLink}`;
+	)} URL: ${userDetails.external_urls.spotify}`;
 
 	let newPlaylist: PlaylistDetails;
 
 	const targetPlaylistExistsInCurrentUser = (
 		await playlistUtil.getAllUserPlaylists()
-	).find(i => i.name === targetPlaylistDetails.name);
+	).find(i => i.name === newPlaylistName);
 	if (!targetPlaylistExistsInCurrentUser) {
 		console.log(
-			`userPlaylistCrawler() > ${targetPlaylistDetails.name} needs to be created in Current User profile`
+			`userPlaylistCrawler() > ${newPlaylistName} needs to be created in Current User profile`
 		);
 		newPlaylist = await playlistUtil.createNewPlaylist(
-			targetPlaylistDetails.name,
-			targetPlaylistDetails.description
+			newPlaylistName,
+			newPlaylistDescription
 		);
 	} else {
 		console.log(
-			`userPlaylistCrawler() > ${targetPlaylistDetails.name} already exists in Current User profile`
+			`userPlaylistCrawler() > ${newPlaylistName} already exists in Current User profile`
 		);
 		newPlaylist = {
 			id: targetPlaylistExistsInCurrentUser.id,
@@ -131,31 +120,4 @@ const userPlaylistCrawler = async () => {
 	}
 };
 
-async function askForUserProfileLink() {
-	const ac = new AbortController();
-	const signal = ac.signal;
-	const timeoutInSeconds = 20;
-	let answer = "";
-	setTimeout(() => ac.abort(), timeoutInSeconds * 1000);
-	const rl = readline.createInterface({ input, output });
-	try {
-		answer = await rl.question(
-			`Provide User Profile Link: [example: ${C.DEFAULT_SPOTIFY_USER.profile_url}]: \n\n`,
-			{ signal }
-		);
-		console.log(`Thank you for sharing the profile Link`);
-	} catch (err) {
-		console.log(
-			`You took too long. Try again within ${timeoutInSeconds} seconds. - Using Default User Profile`
-		);
-		answer = C.DEFAULT_SPOTIFY_USER.profile_url;
-	} finally {
-		rl.close();
-	}
-	return answer;
-}
-
-userPlaylistCrawler().then(() => {
-	console.log(`End`);
-	process.exit(0);
-});
+export { GivenUsersPlaylistCrawler as default };

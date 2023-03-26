@@ -46,9 +46,9 @@ export default class Playlists extends Base {
 			/* eslint-enable */
 			const totalPlaylists = playlistResponse.body.total;
 			console.log(
-				`${
-					this.constructor.name
-				} > getAllUserPlaylists() > Total Playlists Present: ${totalPlaylists}, Fetched ${
+				`${this.constructor.name} > getAllUserPlaylists() > User: ${
+					userid ?? "currentUser"
+				} Total Playlists Present: ${totalPlaylists}, Fetched ${
 					limit < totalPlaylists ? limit : totalPlaylists
 				} playlists as of now, Remaining Playlists to be Fetched: ${
 					limit < totalPlaylists ? totalPlaylists - limit : 0
@@ -71,9 +71,9 @@ export default class Playlists extends Base {
 				completePlaylists.push(...playlistResponse.body.items.map(i => i));
 				count += limit;
 				console.log(
-					`${
-						this.constructor.name
-					} > getAllUserPlaylists() > Total Playlists Present: ${totalPlaylists}, Fetched ${
+					`${this.constructor.name} > getAllUserPlaylists() > User: ${
+						userid ?? "currentUser"
+					} Total Playlists Present: ${totalPlaylists}, Fetched ${
 						count < totalPlaylists ? count : totalPlaylists
 					} playlists as of now, Remaining Playlists to be Fetched: ${
 						count < totalPlaylists ? totalPlaylists - count : 0
@@ -82,7 +82,9 @@ export default class Playlists extends Base {
 			}
 		} catch (err) {
 			throw new Error(
-				`${this.constructor.name} > getAllUserPlaylists() > Error: ${err}`
+				`${this.constructor.name} > getAllUserPlaylists() > User: ${
+					userid ?? "currentUser"
+				} Error: ${err}`
 			);
 		}
 		return completePlaylists;

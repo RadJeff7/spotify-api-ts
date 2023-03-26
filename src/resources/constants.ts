@@ -58,7 +58,7 @@ export const RecommendationsPlaylistFromSpotify = {
 export const RecommendationsPlaylistFromUser = {
 	name: "User Recommendations",
 	description:
-		"Random Songs picked from USER's playlists - created by spotify api - profile URL: ",
+		"Random Songs picked from USER's playlists - created by spotify api 🎶 - ",
 };
 
 export const Spotify_User_Creds = {
