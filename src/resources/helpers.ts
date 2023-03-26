@@ -1,10 +1,11 @@
 import fs from "fs";
+import logger from "./logger";
 export const getRandomItemsFromArray = <T>(arr: T[], count: number): T[] => {
 	let n = count;
 	const len = arr.length;
 
 	if (n > len) {
-		console.log(
+		logger.info(
 			`shuffleArray() > Count of Items(${count}) is Greater than Length of Original Array(${len}) - Retrieving ${
 				len - 1
 			} Random items`

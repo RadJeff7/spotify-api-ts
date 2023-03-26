@@ -3,11 +3,12 @@ import * as Helpers from "../resources/helpers";
 import * as commons from "./commonFunctions";
 import * as C from "../resources/constants";
 import { PlaylistDetails } from "../types";
+import logger from "../resources/logger";
 
 const makeRecommendationPlaylists = async () => {
 	const playlistUtil = new Playlists();
 	const playlists = await playlistUtil.getAllUserPlaylists();
-	console.log(
+	logger.info(
 		`makeRecommendationPlaylists() > Total User Playlists >> ${playlists.length}`
 	);
 
@@ -16,7 +17,7 @@ const makeRecommendationPlaylists = async () => {
 		i => i.name === C.RecommendationsPlaylistFromSpotify.name
 	);
 	if (!archivePlaylistExists) {
-		console.log(
+		logger.info(
 			`makeRecommendationPlaylists() > ${C.RecommendationsPlaylistFromSpotify.name} needs to be created`
 		);
 		newPlaylist = await playlistUtil.createNewPlaylist(
@@ -24,7 +25,7 @@ const makeRecommendationPlaylists = async () => {
 			C.RecommendationsPlaylistFromSpotify.description
 		);
 	} else {
-		console.log(
+		logger.info(
 			`makeRecommendationPlaylists() > ${C.RecommendationsPlaylistFromSpotify.name} already exists`
 		);
 		newPlaylist = {
@@ -33,7 +34,7 @@ const makeRecommendationPlaylists = async () => {
 			owner: archivePlaylistExists.owner?.display_name,
 		};
 	}
-	console.log(
+	logger.info(
 		`makeRecommendationPlaylists() > Target Playlist >> ${JSON.stringify(
 			newPlaylist
 		)}`
@@ -47,12 +48,12 @@ const makeRecommendationPlaylists = async () => {
 		const genres = await playlistUtil.getGenreRecommendations();
 		const selectedGenres = Helpers.getRandomItemsFromArray(genres, 2);
 		const selectedTracks = Helpers.getRandomItemsFromArray(lastPlayedTracks, 3);
-		console.log(
+		logger.info(
 			`makeRecommendationPlaylists() > Selected Tracks for Seeding => ${selectedTracks
 				.map(i => i.name)
 				.join(" \n")}`
 		);
-		console.log(
+		logger.info(
 			`makeRecommendationPlaylists() Selected Genres for Seeding => ${selectedGenres.join(
 				" \n"
 			)}`
@@ -68,7 +69,7 @@ const makeRecommendationPlaylists = async () => {
 			60
 		);
 
-		console.log(
+		logger.info(
 			`makeRecommendationPlaylists() > Total Random Tracks picked From Recommendations >> ${allRandomRecommendedTracks.length} - Adding Them to ${newPlaylist.name}`
 		);
 		const targetTracks = allRandomRecommendedTracks.map(i => {

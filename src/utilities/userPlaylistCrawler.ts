@@ -3,13 +3,14 @@ import * as C from "../resources/constants";
 import * as commons from "./commonFunctions";
 import { Playlists } from "../core";
 import { PlaylistDetails } from "../types";
+import logger from "../resources/logger";
 
 const GivenUsersPlaylistCrawler = async (userId: string) => {
 	const playlistUtil = new Playlists();
 	const recommedingUser = userId;
-	console.log(`userPlaylistCrawler() > Input User ID: ${recommedingUser}`);
+	logger.info(`userPlaylistCrawler() > Input User ID: ${recommedingUser}`);
 	const userDetails = await playlistUtil.getUserDetails(recommedingUser);
-	console.log(
+	logger.info(
 		`userPlaylistCrawler() > Recommending User: ${userDetails.display_name} - Followers: ${userDetails.followers?.total}`
 	);
 	const totalInputUserPlaylists = await playlistUtil.getAllUserPlaylists(
@@ -32,10 +33,10 @@ const GivenUsersPlaylistCrawler = async (userId: string) => {
 		inputPlaylists.length > 20
 			? Helpers.getRandomItemsFromArray(inputPlaylists, 20)
 			: inputPlaylists;
-	console.log(
+	logger.info(
 		`userPlaylistCrawler() > Recommending User: ${userDetails.display_name} - Total User Playlists >> ${totalInputUserPlaylists.length}`
 	);
-	console.log(
+	logger.info(
 		`userPlaylistCrawler() > Recommending User: ${
 			userDetails.display_name
 		} - Playlists selected for mix >> ${
@@ -64,7 +65,7 @@ const GivenUsersPlaylistCrawler = async (userId: string) => {
 		await playlistUtil.getAllUserPlaylists()
 	).find(i => i.name === newPlaylistName);
 	if (!targetPlaylistExistsInCurrentUser) {
-		console.log(
+		logger.info(
 			`userPlaylistCrawler() > ${newPlaylistName} needs to be created in Current User profile`
 		);
 		newPlaylist = await playlistUtil.createNewPlaylist(
@@ -72,7 +73,7 @@ const GivenUsersPlaylistCrawler = async (userId: string) => {
 			newPlaylistDescription
 		);
 	} else {
-		console.log(
+		logger.info(
 			`userPlaylistCrawler() > ${newPlaylistName} already exists in Current User profile`
 		);
 		newPlaylist = {
@@ -81,7 +82,7 @@ const GivenUsersPlaylistCrawler = async (userId: string) => {
 			owner: targetPlaylistExistsInCurrentUser.owner?.display_name,
 		};
 	}
-	console.log(
+	logger.info(
 		`userPlaylistCrawler() > Target Playlist >> ${JSON.stringify(newPlaylist)}`
 	);
 	if (newPlaylist) {
@@ -109,7 +110,7 @@ const GivenUsersPlaylistCrawler = async (userId: string) => {
 				}
 			})
 		);
-		console.log(
+		logger.info(
 			`userPlaylistCrawler() > Total Random Tracks picked From Daily Mix >> ${allRandomTracks.length} - Adding Them to ${newPlaylist.name}`
 		);
 		const targetTracks = allRandomTracks.map(i => {

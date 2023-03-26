@@ -3,6 +3,7 @@ import { PlaylistDetails } from "../types";
 import { ImageDownloader, Playlists } from "../core";
 import * as Helpers from "../resources/helpers";
 import * as C from "../resources/constants";
+import logger from "../resources/logger";
 
 export const updatePlaylistCoverImagesFromUnsplashUtil = async (
 	playlistUtil: Playlists,
@@ -16,7 +17,7 @@ export const updatePlaylistCoverImagesFromUnsplashUtil = async (
 				...(await new ImageDownloader().downloadCoverArts(5))
 			);
 		} catch (err) {
-			console.log(
+			logger.error(
 				`makeRecommendationPlaylists() > Error In Downloading Cover Arts: ${err}`
 			);
 		}

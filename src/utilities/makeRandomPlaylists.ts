@@ -2,11 +2,12 @@ import { Playlists } from "../core";
 import * as C from "../resources/constants";
 import { PlaylistDetails } from "../types";
 import path from "path";
+import logger from "../resources/logger";
 
 const makeRandomPlaylists = async () => {
 	const playlistUtil = new Playlists();
 	const playlists = await playlistUtil.getAllUserPlaylists();
-	console.log(
+	logger.info(
 		`makeRandomPlaylists() > Total User Playlists >> ${playlists.length}`
 	);
 	const featuredPlaylists: PlaylistDetails[] = playlists
@@ -23,9 +24,9 @@ const makeRandomPlaylists = async () => {
 		});
 
 	if (!featuredPlaylists || !featuredPlaylists.length) {
-		throw new Error(
-			`makeRandomPlaylists() > Featured Playlists not found - skipping rest of the process`
-		);
+		const errStr = `makeRandomPlaylists() > Featured Playlists not found - skipping rest of the process`;
+		logger.error(errStr);
+		throw new Error(errStr);
 	}
 
 	let newPlaylist: PlaylistDetails;
@@ -33,7 +34,7 @@ const makeRandomPlaylists = async () => {
 		i => i.name === C.RandomArchivePlaylist.name
 	);
 	if (!archivePlaylistExists) {
-		console.log(
+		logger.info(
 			`makeRandomPlaylists() > ${C.RandomArchivePlaylist.name} needs to be created`
 		);
 		newPlaylist = await playlistUtil.createNewPlaylist(
@@ -41,7 +42,7 @@ const makeRandomPlaylists = async () => {
 			C.RandomArchivePlaylist.description
 		);
 	} else {
-		console.log(
+		logger.info(
 			`makeRandomPlaylists() > ${C.RandomArchivePlaylist.name} already exists`
 		);
 		newPlaylist = {
@@ -50,7 +51,7 @@ const makeRandomPlaylists = async () => {
 			owner: archivePlaylistExists.owner?.display_name,
 		};
 	}
-	console.log(
+	logger.info(
 		`makeRandomPlaylists() > Target Playlist >> ${JSON.stringify(newPlaylist)}`
 	);
 	if (newPlaylist) {
@@ -72,7 +73,7 @@ const makeRandomPlaylists = async () => {
 				}
 			})
 		);
-		console.log(
+		logger.info(
 			`makeRandomPlaylists() > Total Random Tracks picked From Daily Mix >> ${allRandomTracks.length} - Adding Them to ${newPlaylist.name}`
 		);
 		const targetTracks = allRandomTracks.map(i => {

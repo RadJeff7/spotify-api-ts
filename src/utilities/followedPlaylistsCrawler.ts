@@ -2,11 +2,12 @@ import { Playlists } from "../core";
 import * as Helpers from "../resources/helpers";
 import * as C from "../resources/constants";
 import { GivenUsersPlaylistCrawler } from "./index";
+import logger from "../resources/logger";
 
 const FollowedPlaylistsUserCrawler = async (count = 5) => {
 	const playlistUtil = new Playlists();
 	const playlists = await playlistUtil.getAllUserPlaylists();
-	console.log(
+	logger.info(
 		`followedPlaylistsUserCrawler() > Total User Playlists >> ${playlists.length}`
 	);
 	const notRequiredOwnerRegex = new RegExp(
@@ -21,7 +22,7 @@ const FollowedPlaylistsUserCrawler = async (count = 5) => {
 		.map(i => i.owner.id);
 
 	const uniqueUserIds = [...new Set(follwedPlaylistCreatorIds)];
-	console.log(
+	logger.info(
 		`followedPlaylistsUserCrawler() > Total Unique User IDs available  >> ${uniqueUserIds.length}`
 	);
 
@@ -30,7 +31,7 @@ const FollowedPlaylistsUserCrawler = async (count = 5) => {
 			? Helpers.getRandomItemsFromArray(uniqueUserIds, count)
 			: uniqueUserIds;
 
-	console.log(
+	logger.info(
 		`followedPlaylistsUserCrawler() > Users selected for Creating Recommendation Mix >> ${
 			usersProfileTobeCrawled.length
 		} >> Names: ${usersProfileTobeCrawled.join(", ")} \n\n`
@@ -38,12 +39,12 @@ const FollowedPlaylistsUserCrawler = async (count = 5) => {
 
 	for (const profileId of usersProfileTobeCrawled) {
 		try {
-			console.log(
+			logger.info(
 				`followedPlaylistsUserCrawler() > Starting to Crawl Playlist of UserID: ${profileId}`
 			);
 			await GivenUsersPlaylistCrawler(profileId);
 		} catch (err) {
-			console.log(
+			logger.error(
 				`followedPlaylistsUserCrawler() > UserID: ${profileId} > Failure to crawl user playlists ${err}`
 			);
 		}
