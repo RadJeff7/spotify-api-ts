@@ -39,3 +39,4 @@ jobs:
           path: |
             screenshots
             token.json
+            logs
