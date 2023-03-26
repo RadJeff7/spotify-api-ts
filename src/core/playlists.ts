@@ -113,7 +113,9 @@ export default class Playlists extends Base {
 			playlistTracksResponse.body.items.map(i => {
 				if (i.track) allTracksArr.push(i.track);
 			});
-			while (totalTracksPresent > count) {
+			const totalTracksToBeFetched =
+				totalTracksPresent > 1000 ? 1000 : totalTracksPresent;
+			while (totalTracksToBeFetched > count) {
 				const playlistTracksResponse = await this._spUtil.getPlaylistTracks(
 					playlist.id,
 					{ limit: limit, offset: count }
@@ -128,10 +130,10 @@ export default class Playlists extends Base {
 						this.constructor.name
 					} > getAllTracksForGivenPlaylist() > Playlist: ${
 						playlist.name
-					} > Total Tracks Present: ${totalTracksPresent}, Fetched ${
-						count < totalTracksPresent ? count : totalTracksPresent
+					} > Total Tracks to be Fetched: ${totalTracksToBeFetched}, Fetched ${
+						count < totalTracksToBeFetched ? count : totalTracksToBeFetched
 					} Tracks as of now, Remaining Tracks to be Fetched: ${
-						count < totalTracksPresent ? totalTracksPresent - count : 0
+						count < totalTracksToBeFetched ? totalTracksToBeFetched - count : 0
 					}`
 				);
 			}
