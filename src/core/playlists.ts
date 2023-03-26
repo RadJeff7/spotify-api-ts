@@ -191,12 +191,13 @@ export default class Playlists extends Base {
 
 	async createNewPlaylist(
 		name: string,
-		description: string
+		description: string,
+		makePublicFlag = false
 	): Promise<PlaylistDetails> {
 		try {
 			this.setUserTokens();
 			const createPlaylistRes = await this._spUtil.createPlaylist(name, {
-				public: true,
+				public: makePublicFlag,
 				description: description,
 				collaborative: false,
 			});
@@ -335,6 +336,24 @@ export default class Playlists extends Base {
 		}
 	}
 
+	async getPlaylistDetails(playlist: PlaylistDetails) {
+		try {
+			this.setUserTokens();
+			const playlistDetailsBody = (await this._spUtil.getPlaylist(playlist.id))
+				.body;
+			logger.info(
+				`${this.constructor.name} > getPlaylistDetails() > Playlist: ${
+					playlist.name
+				} > Playlist Details: ${JSON.stringify(playlistDetailsBody)}`
+			);
+			return playlistDetailsBody;
+		} catch (err) {
+			const errStr = `${this.constructor.name} > getPlaylistDetails() > Playlist: ${playlist.name} > Error: ${err}`;
+			logger.error(errStr);
+			throw new Error(errStr);
+		}
+	}
+
 	async updatePlaylistCoverImage(
 		playlist: PlaylistDetails,
 		fullFilePath: string,
@@ -346,8 +365,7 @@ export default class Playlists extends Base {
 			// if by force = true; Skip check for userUploadedImageExists Check
 			if (!force) {
 				// Check if
-				const playlistDetails = (await this._spUtil.getPlaylist(playlist.id))
-					.body;
+				const playlistDetails = await this.getPlaylistDetails(playlist);
 
 				const userUploadedCoverImageExists =
 					playlistDetails.images.length &&
@@ -503,6 +521,36 @@ export default class Playlists extends Base {
 		} catch (err) {
 			throw new Error(
 				`${this.constructor.name} > getRecommendedTracks() > Error: ${err}`
+			);
+		}
+	}
+
+	async updatePlaylistDetails(
+		playlist: PlaylistDetails,
+		updateOptions: {
+			name?: string;
+			description?: string;
+			collaborative?: boolean;
+			public?: boolean;
+		}
+	) {
+		try {
+			this.setUserTokens();
+			logger.info(
+				`${this.constructor.name} > updatePlaylistDetails() > Playlist: ${
+					playlist.name
+				} > Updating Below Details: ${JSON.stringify(updateOptions)}`
+			);
+
+			await this._spUtil.changePlaylistDetails(playlist.id, {
+				name: updateOptions.name,
+				description: updateOptions.description,
+				public: updateOptions.public,
+				collaborative: updateOptions.collaborative,
+			});
+		} catch (err) {
+			throw new Error(
+				`${this.constructor.name} > updatePlaylistDetails() > Error: ${err}`
 			);
 		}
 	}

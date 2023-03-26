@@ -11,7 +11,7 @@ class Logger {
 
 	setLogger() {
 		if (!this._logger) {
-			const logFileName = "applogs.log";
+			const logFileName = "applogs-spotify.log";
 			if (!keepLogs) {
 				const logFilePath = path.resolve(
 					__dirname,
