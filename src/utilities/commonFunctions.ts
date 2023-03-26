@@ -1,6 +1,6 @@
 import path from "path";
 import { PlaylistDetails } from "../types";
-import { ImageDownloader, Playlists } from "../utilities";
+import { ImageDownloader, Playlists } from "../core";
 import * as Helpers from "../resources/helpers";
 import * as C from "../resources/constants";
 

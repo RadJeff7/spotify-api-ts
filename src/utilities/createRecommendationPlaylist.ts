@@ -1,4 +1,4 @@
-import { Playlists } from "../utilities";
+import { Playlists } from "../core";
 import * as Helpers from "../resources/helpers";
 import * as commons from "./commonFunctions";
 import * as C from "../resources/constants";

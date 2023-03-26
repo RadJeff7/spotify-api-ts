@@ -3,7 +3,7 @@ import { stdin as input, stdout as output } from "node:process";
 import * as Helpers from "../resources/helpers";
 import * as C from "../resources/constants";
 import * as commons from "./commonFunctions";
-import { Playlists } from "../utilities";
+import { Playlists } from "../core";
 import { PlaylistDetails } from "../types";
 
 const userPlaylistCrawler = async () => {

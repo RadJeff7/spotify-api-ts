@@ -1,10 +1,10 @@
 import dotenv from "dotenv";
 dotenv.config();
-import { PuppeteerBrowser, Server } from "./utilities";
+import { PuppeteerBrowser, Server } from "./core";
 import {
 	makeRandomPlaylistsFromDailyMix,
 	createWeeklyArchiveFromDiscoverWeekly,
-} from "./core";
+} from "./utilities";
 
 const sleep = (ms = 5000) => new Promise(r => setTimeout(r, ms));
 const utilSelected = process.env.UTIL_NAME || "all"; //use 'random' = randomPlaylist Generation, 'weekly' = weeklyPlaylist Generation, 'all' = all utility

@@ -1,4 +1,4 @@
-import { PuppeteerBrowser, Server } from "./utilities";
+import { PuppeteerBrowser, Server } from "./core";
 import * as C from "./resources/constants";
 const sleep = (ms = 5000) => new Promise(r => setTimeout(r, ms));
 
