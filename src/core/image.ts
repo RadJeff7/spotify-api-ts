@@ -96,7 +96,7 @@ export default class ImageDownloader {
 				logger.error(errStr);
 				throw new Error(errStr);
 			}
-			return urls;
+			return urls.length > 5 ? Helpers.getRandomItemsFromArray(urls, 5) : urls;
 		} catch (err) {
 			const errStr = `${this.constructor.name} > getImageURLsBySearch() > ${err}`;
 			logger.error(errStr);
@@ -105,7 +105,7 @@ export default class ImageDownloader {
 	}
 
 	async downloadCoverArts(count = 10) {
-		const searhTerms = ["aesthetic", "music", "sky", "coffee"];
+		const searhTerms = ["playlist", "concert", "aesthetic", "music", "sky"];
 		const fullfolderPath = path.resolve(
 			__dirname,
 			`../../src/${C.Relative_Image_Folder}/download`

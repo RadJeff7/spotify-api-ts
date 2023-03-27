@@ -111,7 +111,7 @@ const GivenUsersPlaylistCrawler = async (userId: string) => {
 			})
 		);
 		logger.info(
-			`userPlaylistCrawler() > Total Random Tracks picked From Daily Mix >> ${allRandomTracks.length} - Adding Them to ${newPlaylist.name}`
+			`userPlaylistCrawler() > Total Random Tracks picked From Recommending User: ${userDetails.display_name}'s playlist >> ${allRandomTracks.length} - Adding Them to ${newPlaylist.name}`
 		);
 		const targetTracks = allRandomTracks.map(i => {
 			return { uri: i.uri, name: i.name };

@@ -59,7 +59,13 @@ const makeRandomPlaylists = async () => {
 			__dirname,
 			`../../src/${C.Relative_Playlist_Image_Path.random}`
 		);
-		await playlistUtil.updatePlaylistCoverImage(newPlaylist, fullFilePath);
+		try {
+			await playlistUtil.updatePlaylistCoverImage(newPlaylist, fullFilePath);
+		} catch (err) {
+			logger.error(
+				`makeRandomPlaylists() > Error In Updating Playlist Image: ${err}`
+			);
+		}
 		const allRandomTracks: SpotifyApi.TrackObjectFull[] = [];
 
 		await Promise.all(

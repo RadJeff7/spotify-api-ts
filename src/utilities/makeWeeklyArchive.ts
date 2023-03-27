@@ -61,7 +61,13 @@ const createWeeklyArchive = async () => {
 			__dirname,
 			`../../src/${C.Relative_Playlist_Image_Path.weekly}`
 		);
-		await playlistUtil.updatePlaylistCoverImage(newPlaylist, fullFilePath);
+		try {
+			await playlistUtil.updatePlaylistCoverImage(newPlaylist, fullFilePath);
+		} catch (err) {
+			logger.error(
+				`makeRandomPlaylists() > Error In Updating Playlist Image: ${err}`
+			);
+		}
 		const featuredTracks = await playlistUtil.getAllTracksForGivenPlaylist(
 			featuredPlaylist
 		);

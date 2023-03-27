@@ -10,27 +10,33 @@ export const updatePlaylistCoverImagesFromUnsplashUtil = async (
 	playlist: PlaylistDetails,
 	updateRequired = true
 ) => {
-	const coverArtsFilePaths: string[] = [];
-	if (updateRequired) {
-		try {
-			coverArtsFilePaths.push(
-				...(await new ImageDownloader().downloadCoverArts(5))
-			);
-		} catch (err) {
-			logger.error(
-				`makeRecommendationPlaylists() > Error In Downloading Cover Arts: ${err}`
-			);
+	try {
+		const coverArtsFilePaths: string[] = [];
+		if (updateRequired) {
+			try {
+				coverArtsFilePaths.push(
+					...(await new ImageDownloader().downloadCoverArts(5))
+				);
+			} catch (err) {
+				logger.error(
+					`updatePlaylistCoverImagesFromUnsplashUtil() > Error In Downloading Cover Arts: ${err}`
+				);
+			}
 		}
+		const fullFilePath = coverArtsFilePaths.length
+			? Helpers.getRandomItemsFromArray(coverArtsFilePaths, 1)[0]
+			: path.resolve(
+					__dirname,
+					`../../src/${C.Relative_Playlist_Image_Path.recommendation}`
+			  );
+		await playlistUtil.updatePlaylistCoverImage(
+			playlist,
+			fullFilePath,
+			updateRequired
+		);
+	} catch (err) {
+		logger.error(
+			`updatePlaylistCoverImagesFromUnsplashUtil() > Error In Updating Playlist Image: ${err}`
+		);
 	}
-	const fullFilePath = coverArtsFilePaths.length
-		? Helpers.getRandomItemsFromArray(coverArtsFilePaths, 1)[0]
-		: path.resolve(
-				__dirname,
-				`../../src/${C.Relative_Playlist_Image_Path.recommendation}`
-		  );
-	await playlistUtil.updatePlaylistCoverImage(
-		playlist,
-		fullFilePath,
-		updateRequired
-	);
 };
