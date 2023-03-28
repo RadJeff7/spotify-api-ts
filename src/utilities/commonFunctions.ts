@@ -14,9 +14,9 @@ export const updatePlaylistCoverImagesFromUnsplashUtil = async (
 		const coverArtsFilePaths: string[] = [];
 		if (updateRequired) {
 			try {
-				coverArtsFilePaths.push(
-					...(await new ImageDownloader().downloadCoverArts(5))
-				);
+				const downloadedImagePaths =
+					await new ImageDownloader().downloadCoverArts();
+				coverArtsFilePaths.push(...downloadedImagePaths);
 			} catch (err) {
 				logger.error(
 					`updatePlaylistCoverImagesFromUnsplashUtil() > Error In Downloading Cover Arts: ${err}`

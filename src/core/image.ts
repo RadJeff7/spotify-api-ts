@@ -45,7 +45,7 @@ export default class ImageDownloader {
 	}
 
 	protected async getImageURLsBySearch(
-		searhTerm: string,
+		searchTerm: string,
 		page = 1,
 		per_page = 8,
 		orientation: "landscape" | "portrait" | "squarish" = "squarish"
@@ -56,7 +56,7 @@ export default class ImageDownloader {
 			const getPhotosFunc = this._unsplashUtil.search.getPhotos;
 			type searchConfigObj = Parameters<typeof getPhotosFunc>[0];
 			const searchConfig: searchConfigObj = {
-				query: searhTerm,
+				query: searchTerm,
 				page,
 				perPage: per_page,
 				orientation: orientation,
@@ -105,7 +105,7 @@ export default class ImageDownloader {
 		);
 		Helpers.deleteAndCreateFolder(fullfolderPath);
 		const searchObj = {
-			page: Math.floor(Math.random() * 10),
+			page: Math.floor(Math.random() * 5),
 			per_page: count,
 		};
 		const urls = await this.getImageURLsBySearch(
