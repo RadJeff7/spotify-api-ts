@@ -52,21 +52,7 @@ export default class ImageDownloader {
 	) {
 		try {
 			this.getUnsplashUtil();
-			const allColors = [
-				"white",
-				"black",
-				"yellow",
-				"orange",
-				"red",
-				"purple",
-				"magenta",
-				"green",
-				"teal",
-				"blue",
-				"black_and_white",
-			] as const;
-			const randomColor: (typeof allColors)[number] =
-				allColors[Math.random() * allColors.length];
+
 			const getPhotosFunc = this._unsplashUtil.search.getPhotos;
 			type searchConfigObj = Parameters<typeof getPhotosFunc>[0];
 			const searchConfig: searchConfigObj = {
@@ -75,7 +61,6 @@ export default class ImageDownloader {
 				perPage: per_page,
 				orientation: orientation,
 				contentFilter: "high",
-				color: randomColor,
 				orderBy: "relevant",
 			};
 			const searchRes = await this._unsplashUtil.search.getPhotos(searchConfig);
@@ -105,7 +90,15 @@ export default class ImageDownloader {
 	}
 
 	async downloadCoverArts(count = 10) {
-		const searhTerms = ["playlist", "concert", "aesthetic", "music", "sky"];
+		const searhTerms = [
+			"playlist",
+			"concert",
+			"aesthetic",
+			"music",
+			"guitar",
+			"indie",
+			"hiphop",
+		];
 		const fullfolderPath = path.resolve(
 			__dirname,
 			`../../src/${C.Relative_Image_Folder}/download`
