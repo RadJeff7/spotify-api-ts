@@ -1,9 +1,9 @@
 import assert from "assert";
 import Puppeteer, { Browser, ElementHandle, Page } from "puppeteer";
 import { PuppeteerScreenRecorder } from "puppeteer-screen-recorder";
-
+import * as Helpers from "../resources/helpers";
 import * as C from "../resources/constants";
-import fs from "fs";
+import logger from "../resources/logger";
 
 export default class BrowserClass {
 	private _browserUtil!: Browser;
@@ -24,21 +24,18 @@ export default class BrowserClass {
 						"--window-size=1920,1040",
 					],
 				});
-				console.log(
+				logger.info(
 					`${
 						this.constructor.name
 					} > getBrowserObj() > Browser Object Initialized $${await this._browserUtil.version()}`
 				);
 			}
 		} catch (err) {
-			const errorStr = `${this.constructor.name} > getBrowserObj() > Failure in opening Browser Instance: ${err}`;
-			await this.handleErrors(errorStr);
+			await this.handleErrors(
+				`${this.constructor.name} > getBrowserObj() > Failure in opening Browser Instance: ${err}`
+			);
 		}
-		// screenshots folder
-		if (fs.existsSync("./screenshots"))
-			fs.rmSync("./screenshots", { recursive: true, force: true });
-
-		if (!fs.existsSync("./screenshots")) fs.mkdirSync("./screenshots");
+		Helpers.deleteAndCreateFolder("./screenshots");
 	}
 
 	async openSpotifyLoginPage() {
@@ -51,11 +48,11 @@ export default class BrowserClass {
 				await page.setViewport({ width: 1920, height: 1040 });
 				if (!this._screenRecorder) {
 					this._screenRecorder = new PuppeteerScreenRecorder(page);
-					const recordingStart = await this._screenRecorder.start(
+					await this._screenRecorder.start(
 						`./screenshots/Auth-Token-Generation.mp4`
 					);
-					console.log(
-						`${this.constructor.name} > openSpotifyLoginPage() > Starting Screen Recording - ${recordingStart}`
+					logger.info(
+						`${this.constructor.name} > openSpotifyLoginPage() > Starting Screen Recording`
 					);
 				}
 
@@ -65,24 +62,26 @@ export default class BrowserClass {
 					(await page.title()).includes(`Login`),
 					`${this.constructor.name} > openSpotifyLoginPage() > Spotify Page not found`
 				);
-				console.log(
+				logger.info(
 					`${
 						this.constructor.name
 					} > openSpotifyLoginPage() > Current Page: ${await page.title()}`
 				);
 				this._loginPage = page;
 			} catch (err) {
-				const errorStr = `${this.constructor.name} > openSpotifyLoginPage() > Failure in Opening Spotify Login Page`;
 				this._errorPage = this._loginPage ? this._loginPage : undefined;
-				await this.handleErrors(errorStr);
+				await this.handleErrors(
+					`${this.constructor.name} > openSpotifyLoginPage() > Failure in Opening Spotify Login Page`
+				);
 			}
 		}
 	}
 
 	async handleSpotifyLogin() {
 		if (!(C.Spotify_User_Creds.email && C.Spotify_User_Creds.password)) {
-			const errorStr = `${this.constructor.name} > handleSpotifyLogin() > Spotify User Creds are not filled - Skipping Browser Automation Flow`;
-			await this.handleErrors(errorStr);
+			await this.handleErrors(
+				`${this.constructor.name} > handleSpotifyLogin() > Spotify User Creds are not filled - Skipping Browser Automation Flow`
+			);
 		}
 		try {
 			if (!this._loginPage) {
@@ -95,7 +94,7 @@ export default class BrowserClass {
 			const passwordField = await this._loginPage.$(`#login-password`);
 			assert.ok(passwordField, "Password Field could not be Found");
 			await passwordField.type(C.Spotify_User_Creds.password);
-			console.log(
+			logger.info(
 				`${
 					this.constructor.name
 				} > handleSpotifyLogin() > Current Page: ${await this._loginPage.title()} - Login Details Filled`
@@ -115,9 +114,10 @@ export default class BrowserClass {
 			});
 			this._authPage = this._loginPage;
 		} catch (err) {
-			const errorStr = `${this.constructor.name} > handleSpotifyLogin() > Failure in handling Spotify Login Page: ${err}`;
 			this._errorPage = this._loginPage ? this._loginPage : undefined;
-			await this.handleErrors(errorStr);
+			await this.handleErrors(
+				`${this.constructor.name} > handleSpotifyLogin() > Failure in handling Spotify Login Page: ${err}`
+			);
 		}
 	}
 
@@ -127,7 +127,7 @@ export default class BrowserClass {
 				await this.handleSpotifyLogin();
 			}
 			assert.ok((await this._authPage.title()).includes(`Authorize`));
-			console.log(
+			logger.info(
 				`${
 					this.constructor.name
 				} > handleSpotifyAuthorization() > Current Page: ${await this._authPage.title()}`
@@ -142,33 +142,36 @@ export default class BrowserClass {
 				() => document.documentElement.outerHTML
 			);
 			assert.ok(bodyHTML.includes(`Success!`), "Success Page not displayed");
-			console.log(
+			logger.info(
 				`${this.constructor.name} > handleSpotifyAuthorization() > Current Page Content: ${bodyHTML}`
 			);
 		} catch (err) {
-			const errorStr = `${this.constructor.name} > handleSpotifyAuthorization() > Failure in handling Spotify Login Page: ${err}`;
 			this._errorPage = this._authPage
 				? this._authPage
 				: this._loginPage
 				? this._loginPage
 				: undefined;
-			await this.handleErrors(errorStr);
+			await this.handleErrors(
+				`${this.constructor.name} > handleSpotifyLogin() > Failure in handling Spotify Login Page: ${err}`
+			);
 		}
 	}
 
 	async closeBrowserInstance() {
-		console.log(
+		logger.info(
 			`${this.constructor.name} > closeBrowserInstance() > Trying to stop screen-recorder and browser instance`
 		);
 		if (this._screenRecorder) {
 			const status = await this._screenRecorder.stop();
-			console.log(
-				`${this.constructor.name} > closeBrowserInstance() > Screen Recorder Status: ${status}`
+			logger.info(
+				`${
+					this.constructor.name
+				} > closeBrowserInstance() > Screen Recorder Status: ${status} - Duration: ${this._screenRecorder.getRecordDuration()}`
 			);
 		}
 
 		if (this._browserUtil) {
-			console.log(
+			logger.info(
 				`${this.constructor.name} > closeBrowserInstance() > Browser Instance Closed`
 			);
 			this._browserUtil.close();
@@ -177,7 +180,7 @@ export default class BrowserClass {
 
 	async handleErrors(errorMessage: string) {
 		const errStr = `${this.constructor.name} > handleErrors() > ${errorMessage}`;
-		console.log(errStr);
+		logger.error(errStr);
 
 		try {
 			if (this._errorPage) {
@@ -187,7 +190,7 @@ export default class BrowserClass {
 				});
 			}
 		} catch (err) {
-			console.log(
+			logger.error(
 				`${this.constructor.name} > handleErrors() > unable to take Error screen shot`
 			);
 		}

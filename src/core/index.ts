@@ -1,13 +1,6 @@
 import Playlists from "./playlists";
 import Server from "./server";
-import createWeeklyArchiveFromDiscoverWeekly from "./makeWeeklyArchive";
-import makeRandomPlaylists from "./makeRandomPlaylists";
 import PuppeteerBrowser from "./puppeteer";
+import ImageDownloader from "./image";
 
-export {
-	Playlists,
-	Server,
-	createWeeklyArchiveFromDiscoverWeekly,
-	makeRandomPlaylists,
-	PuppeteerBrowser,
-};
+export { Playlists, Server, PuppeteerBrowser, ImageDownloader };

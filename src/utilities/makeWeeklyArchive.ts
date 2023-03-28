@@ -1,12 +1,14 @@
-import Playlists from "./playlists";
+import { Playlists } from "../core";
 import * as C from "../resources/constants";
 import { PlaylistDetails } from "../types";
+import path from "path";
+import logger from "../resources/logger";
 
 const createWeeklyArchive = async () => {
 	const playlistUtil = new Playlists();
 	// Get All User Playlists
 	const playlists = await playlistUtil.getAllUserPlaylists();
-	console.log(
+	logger.info(
 		`createWeeklyArchive() > Total User Playlists >> ${playlists.length}`
 	);
 
@@ -24,9 +26,9 @@ const createWeeklyArchive = async () => {
 			return i.owner?.toLowerCase().includes("spotify");
 		})?.[0];
 	if (!featuredPlaylist) {
-		throw new Error(
-			`createWeeklyArchive() > Featured Playlist not found - skipping rest of the process`
-		);
+		const errStr = `createWeeklyArchive() > Featured Playlist not found - skipping rest of the process`;
+		logger.error(errStr);
+		throw new Error(errStr);
 	}
 	// Try to find our Target(archive) Playlist from list of user playlists - if not found create new playlist
 	let newPlaylist: PlaylistDetails;
@@ -34,7 +36,7 @@ const createWeeklyArchive = async () => {
 		i => i.name === C.WeeklyArchivePlaylist.name
 	);
 	if (!archivePlaylistExists) {
-		console.log(
+		logger.info(
 			`createWeeklyArchive() > ${C.WeeklyArchivePlaylist.name} needs to be created`
 		);
 		newPlaylist = await playlistUtil.createNewPlaylist(
@@ -42,7 +44,7 @@ const createWeeklyArchive = async () => {
 			C.WeeklyArchivePlaylist.description
 		);
 	} else {
-		console.log(
+		logger.info(
 			`createWeeklyArchive() > ${C.WeeklyArchivePlaylist.name} already exists -> appending songs`
 		);
 		newPlaylist = {
@@ -51,18 +53,25 @@ const createWeeklyArchive = async () => {
 			owner: archivePlaylistExists.owner?.display_name,
 		};
 	}
-	console.log(
+	logger.info(
 		`createWeeklyArchive() > Target Playlist >> ${JSON.stringify(newPlaylist)}`
 	);
 	if (newPlaylist) {
-		await playlistUtil.updatePlaylistCoverImage(
-			newPlaylist,
-			C.Relative_Playlist_Image_Path.weekly
+		const fullFilePath = path.resolve(
+			__dirname,
+			`../../src/${C.Relative_Playlist_Image_Path.weekly}`
 		);
+		try {
+			await playlistUtil.updatePlaylistCoverImage(newPlaylist, fullFilePath);
+		} catch (err) {
+			logger.error(
+				`makeRandomPlaylists() > Error In Updating Playlist Image: ${err}`
+			);
+		}
 		const featuredTracks = await playlistUtil.getAllTracksForGivenPlaylist(
 			featuredPlaylist
 		);
-		console.log(
+		logger.info(
 			`createWeeklyArchive() > Total Tracks on Discover Weeekly >> ${featuredTracks.length}`
 		);
 		const targetTracks = featuredTracks.map(i => {

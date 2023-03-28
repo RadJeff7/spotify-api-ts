@@ -1,9 +1,15 @@
 import assert from "assert";
-import { Authorization, PlaylistDetails } from "../types";
+import {
+	Authorization,
+	PlaylistDetails,
+	RecentlyPlayedTrackDetails,
+	TrackDetails,
+} from "../types";
 import * as Helpers from "../resources/helpers";
 import Base from "./base";
 import fs from "fs";
-import path from "path";
+import moment from "moment";
+import logger from "../resources/logger";
 
 export default class Playlists extends Base {
 	constructor(auth?: Authorization) {
@@ -16,11 +22,15 @@ export default class Playlists extends Base {
 			const userResponse = !userid
 				? await this._spUtil.getMe()
 				: await this._spUtil.getUser(userid);
-			return userResponse.body;
-		} catch (err) {
-			throw new Error(
-				`${this.constructor.name} > getUserDetails() > Error: ${err}`
+			const userBody = userResponse.body;
+			logger.info(
+				`${this.constructor.name} > getUserDetails() > User Name: ${userBody.display_name}`
 			);
+			return userBody;
+		} catch (err) {
+			const errStr = `${this.constructor.name} > getUserDetails() > Error: ${err}`;
+			logger.error(errStr);
+			throw new Error(errStr);
 		}
 	}
 
@@ -40,10 +50,10 @@ export default class Playlists extends Base {
 				  });
 			/* eslint-enable */
 			const totalPlaylists = playlistResponse.body.total;
-			console.log(
-				`${
-					this.constructor.name
-				} > getAllUserPlaylists() > Total Playlists Present: ${totalPlaylists}, Fetched ${
+			logger.info(
+				`${this.constructor.name} > getAllUserPlaylists() > User: ${
+					userid ?? "currentUser"
+				} Total Playlists Present: ${totalPlaylists}, Fetched ${
 					limit < totalPlaylists ? limit : totalPlaylists
 				} playlists as of now, Remaining Playlists to be Fetched: ${
 					limit < totalPlaylists ? totalPlaylists - limit : 0
@@ -65,10 +75,10 @@ export default class Playlists extends Base {
 				/* eslint-enable */
 				completePlaylists.push(...playlistResponse.body.items.map(i => i));
 				count += limit;
-				console.log(
-					`${
-						this.constructor.name
-					} > getAllUserPlaylists() > Total Playlists Present: ${totalPlaylists}, Fetched ${
+				logger.info(
+					`${this.constructor.name} > getAllUserPlaylists() > User: ${
+						userid ?? "currentUser"
+					} Total Playlists Present: ${totalPlaylists}, Fetched ${
 						count < totalPlaylists ? count : totalPlaylists
 					} playlists as of now, Remaining Playlists to be Fetched: ${
 						count < totalPlaylists ? totalPlaylists - count : 0
@@ -76,9 +86,13 @@ export default class Playlists extends Base {
 				);
 			}
 		} catch (err) {
-			throw new Error(
-				`${this.constructor.name} > getAllUserPlaylists() > Error: ${err}`
-			);
+			const errStr = `${
+				this.constructor.name
+			} > getAllUserPlaylists() > User: ${
+				userid ?? "currentUser"
+			} Error: ${err}`;
+			logger.error(errStr);
+			throw new Error(errStr);
 		}
 		return completePlaylists;
 	}
@@ -94,7 +108,7 @@ export default class Playlists extends Base {
 				{ limit: limit }
 			);
 			const totalTracksPresent = playlistTracksResponse.body.total;
-			console.log(
+			logger.info(
 				`${
 					this.constructor.name
 				} > getAllTracksForGivenPlaylist() > Playlist: ${
@@ -108,7 +122,9 @@ export default class Playlists extends Base {
 			playlistTracksResponse.body.items.map(i => {
 				if (i.track) allTracksArr.push(i.track);
 			});
-			while (totalTracksPresent > count) {
+			const totalTracksToBeFetched =
+				totalTracksPresent > 1000 ? 1000 : totalTracksPresent;
+			while (totalTracksToBeFetched > count) {
 				const playlistTracksResponse = await this._spUtil.getPlaylistTracks(
 					playlist.id,
 					{ limit: limit, offset: count }
@@ -118,22 +134,22 @@ export default class Playlists extends Base {
 					if (i.track) allTracksArr.push(i.track);
 				});
 				count += limit;
-				console.log(
+				logger.info(
 					`${
 						this.constructor.name
 					} > getAllTracksForGivenPlaylist() > Playlist: ${
 						playlist.name
-					} > Total Tracks Present: ${totalTracksPresent}, Fetched ${
-						count < totalTracksPresent ? count : totalTracksPresent
+					} > Total Tracks to be Fetched: ${totalTracksToBeFetched}, Fetched ${
+						count < totalTracksToBeFetched ? count : totalTracksToBeFetched
 					} Tracks as of now, Remaining Tracks to be Fetched: ${
-						count < totalTracksPresent ? totalTracksPresent - count : 0
+						count < totalTracksToBeFetched ? totalTracksToBeFetched - count : 0
 					}`
 				);
 			}
 		} catch (err) {
-			throw new Error(
-				`${this.constructor.name} > getAllTracksForGivenPlaylist() > Playlist: ${playlist.name} > Error: ${err}`
-			);
+			const errStr = `${this.constructor.name} > getAllTracksForGivenPlaylist() > Playlist: ${playlist.name} > Error: ${err}`;
+			logger.error(errStr);
+			throw new Error(errStr);
 		}
 		return allTracksArr;
 	}
@@ -144,9 +160,14 @@ export default class Playlists extends Base {
 	) {
 		try {
 			this.setUserTokens();
+			// max length  for one time usage = 100
+			const inputTracks =
+				tracks.length > 100
+					? Helpers.getRandomItemsFromArray(tracks, 100)
+					: tracks;
 			const addTracksRes = await this._spUtil.addTracksToPlaylist(
 				playlist.id,
-				tracks.map(track => track.uri)
+				inputTracks.map(track => track.uri)
 			);
 
 			assert.equal(
@@ -154,28 +175,29 @@ export default class Playlists extends Base {
 				201,
 				`${this.constructor.name} > Playlist: ${playlist.name} > Adding Tracks To Playlist not successful`
 			);
-			console.log(
+			logger.info(
 				`${this.constructor.name} > Playlist: ${
 					playlist.name
-				} > addTracksToPlaylist() > Successfully updated the playlist With Songs -> ${tracks
+				} > addTracksToPlaylist() > Successfully updated the playlist With Songs -> ${inputTracks
 					.map(track => track.name)
 					.join(" , ")}\n`
 			);
 		} catch (err) {
-			throw new Error(
-				`${this.constructor.name} > Playlist: ${playlist.name} > addTracksToPlaylist() > Error: ${err}`
-			);
+			const errStr = `${this.constructor.name} > Playlist: ${playlist.name} > addTracksToPlaylist() > Error: ${err}`;
+			logger.error(errStr);
+			throw new Error(errStr);
 		}
 	}
 
 	async createNewPlaylist(
 		name: string,
-		description: string
+		description: string,
+		makePublicFlag = false
 	): Promise<PlaylistDetails> {
 		try {
 			this.setUserTokens();
 			const createPlaylistRes = await this._spUtil.createPlaylist(name, {
-				public: true,
+				public: makePublicFlag,
 				description: description,
 				collaborative: false,
 			});
@@ -184,7 +206,7 @@ export default class Playlists extends Base {
 				201,
 				`${this.constructor.name} > Creation of Playlist: ${name} not successfull`
 			);
-			console.log(
+			logger.info(
 				`${this.constructor.name} > createNewPlaylist() > Created new Playlist - name: ${name}`
 			);
 			return {
@@ -193,9 +215,9 @@ export default class Playlists extends Base {
 				owner: createPlaylistRes.body.owner?.display_name,
 			};
 		} catch (err) {
-			throw new Error(
-				`${this.constructor.name} > createNewPlaylist() > Error: ${err}`
-			);
+			const errStr = `${this.constructor.name} > createNewPlaylist() > Error: ${err}`;
+			logger.error(errStr);
+			throw new Error(errStr);
 		}
 	}
 
@@ -205,7 +227,7 @@ export default class Playlists extends Base {
 	) {
 		try {
 			this.setUserTokens();
-			console.log(
+			logger.info(
 				`${this.constructor.name} > updatePlaylistWithSongs() > Playlist: ${playlist.name} > New songs to be added in Playlist >> ${newTracks.length}`
 			);
 			const tracksInPlaylist = await this.getAllTracksForGivenPlaylist(
@@ -217,16 +239,16 @@ export default class Playlists extends Base {
 						existingTrack => existingTrack.uri === newTrack.uri
 					)
 			);
-			console.log(
+			logger.info(
 				`${this.constructor.name} > updatePlaylistWithSongs() > Playlist: ${playlist.name} > New and Unique songs to be added in Playlist >> ${uniqueTracks.length}`
 			);
 			if (uniqueTracks.length) {
 				await this.addTracksToPlaylist(playlist, uniqueTracks);
 			}
 		} catch (err) {
-			throw new Error(
-				`${this.constructor.name} > updatePlaylistWithSongs() > Playlist: ${playlist.name} > Error: ${err}`
-			);
+			const errStr = `${this.constructor.name} > updatePlaylistWithSongs() > Playlist: ${playlist.name} > Error: ${err}`;
+			logger.error(errStr);
+			throw new Error(errStr);
 		}
 	}
 
@@ -235,14 +257,14 @@ export default class Playlists extends Base {
 		try {
 			this.setUserTokens();
 			const allTracksArr = await this.getAllTracksForGivenPlaylist(playlist);
-			console.log(
+			logger.info(
 				`${this.constructor.name} > getRandomSongsFromPlaylist() > Playlist: ${playlist.name} > Total Tracks Present: ${allTracksArr.length} - Fetching random ${count} Tracks`
 			);
 			randomTracksArr = Helpers.getRandomItemsFromArray(allTracksArr, count);
 		} catch (err) {
-			throw new Error(
-				`${this.constructor.name} > getRandomSongsFromPlaylist() > Playlist: ${playlist.name} > Error: ${err}`
-			);
+			const errStr = `${this.constructor.name} > getRandomSongsFromPlaylist() > Playlist: ${playlist.name} > Error: ${err}`;
+			logger.error(errStr);
+			throw new Error(errStr);
 		}
 		return randomTracksArr;
 	}
@@ -263,13 +285,13 @@ export default class Playlists extends Base {
 				200,
 				`${this.constructor.name} > Playlist: ${playlist.name} > Deletion of Tracks To Playlist not successful`
 			);
-			console.log(
+			logger.info(
 				`${this.constructor.name} > Playlist: ${playlist.name} > deleteSongsFromPlaylist() > Successfully updated the playlist`
 			);
 		} catch (err) {
-			throw new Error(
-				`${this.constructor.name} > Playlist: ${playlist.name} > deleteSongsFromPlaylist() > Error: ${err}`
-			);
+			const errStr = `${this.constructor.name} > Playlist: ${playlist.name} > deleteSongsFromPlaylist() > Error: ${err}`;
+			logger.error(errStr);
+			throw new Error(errStr);
 		}
 	}
 
@@ -278,20 +300,21 @@ export default class Playlists extends Base {
 			this.setUserTokens();
 			const allTracksArr = await this.getAllTracksForGivenPlaylist(playlist);
 			const playlistLength = allTracksArr.length;
-			console.log(
+			logger.info(
 				`${this.constructor.name} > maintainPlaylistsAtSize() > Playlist: ${playlist.name} > Total Tracks Present: ${playlistLength}`
 			);
 			if (playlistLength <= size) {
-				console.log(
+				logger.info(
 					`${this.constructor.name} > maintainPlaylistsAtSize() > Playlist: ${playlist.name} > Playlist size is within Max Size(${size})`
 				);
 				return;
 			} else {
-				const deletionSize = playlistLength - size;
+				let deletionSize = playlistLength - size;
 				if (deletionSize > 0) {
+					deletionSize = deletionSize >= 100 ? 100 : deletionSize;
 					const randomSongsForDeletion: SpotifyApi.TrackObjectFull[] =
 						Helpers.getRandomItemsFromArray(allTracksArr, deletionSize);
-					console.log(
+					logger.info(
 						`${this.constructor.name} > maintainPlaylistsAtSize() > Playlist: ${
 							playlist.name
 						} > Playlist size(${playlistLength}) is more than Max Size(${size}) - Deleting ${deletionSize} songs -> ${randomSongsForDeletion
@@ -307,33 +330,53 @@ export default class Playlists extends Base {
 				}
 			}
 		} catch (err) {
-			throw new Error(
-				`${this.constructor.name} > maintainPlaylistsAtSize() > Playlist: ${playlist.name} > Error: ${err}`
+			const errStr = `${this.constructor.name} > maintainPlaylistsAtSize() > Playlist: ${playlist.name} > Error: ${err}`;
+			logger.error(errStr);
+			throw new Error(errStr);
+		}
+	}
+
+	async getPlaylistDetails(playlist: PlaylistDetails) {
+		try {
+			this.setUserTokens();
+			const playlistDetailsBody = (await this._spUtil.getPlaylist(playlist.id))
+				.body;
+			logger.info(
+				`${this.constructor.name} > getPlaylistDetails() > Playlist: ${
+					playlist.name
+				} > Playlist Details: ${JSON.stringify(playlistDetailsBody)}`
 			);
+			return playlistDetailsBody;
+		} catch (err) {
+			const errStr = `${this.constructor.name} > getPlaylistDetails() > Playlist: ${playlist.name} > Error: ${err}`;
+			logger.error(errStr);
+			throw new Error(errStr);
 		}
 	}
 
 	async updatePlaylistCoverImage(
 		playlist: PlaylistDetails,
-		relativeImgPath: string
+		fullFilePath: string,
+		force?: boolean
 	) {
 		try {
 			this.setUserTokens();
-			const playlistDetails = (await this._spUtil.getPlaylist(playlist.id))
-				.body;
+			let updateRequired = Boolean(force);
+			// if by force = true; Skip check for userUploadedImageExists Check
+			if (!force) {
+				// Check if
+				const playlistDetails = await this.getPlaylistDetails(playlist);
 
-			const userUploadedCoverImageExists =
-				playlistDetails.images.length &&
-				playlistDetails.images.every(
-					i => !i.url.match(/mosaic/) //mosaic images are auto-generated
-				);
-			const fullFilePath = path.resolve(
-				__dirname,
-				`../../src/${relativeImgPath}`
-			);
-			if (!userUploadedCoverImageExists) {
+				const userUploadedCoverImageExists =
+					playlistDetails.images.length &&
+					playlistDetails.images.every(
+						i => !i.url.match(/mosaic/) //mosaic images are auto-generated
+					);
+				updateRequired = !userUploadedCoverImageExists;
+			}
+			if (updateRequired) {
 				if (fs.existsSync(fullFilePath)) {
-					console.log(
+					logger.info(
 						`${this.constructor.name} > updateAutogeneratedPlaylistImages() > Playlist: ${playlist.name} > Trying to update playlist Image`
 					);
 					const imgbase64URI = fs.readFileSync(fullFilePath, "base64");
@@ -342,18 +385,178 @@ export default class Playlists extends Base {
 						imgbase64URI
 					);
 				} else {
-					console.log(
+					logger.error(
 						`${this.constructor.name} > updateAutogeneratedPlaylistImages() > Playlist: ${playlist.name} > ImagePath not Found`
 					);
 				}
 			} else {
-				console.log(
+				logger.info(
 					`${this.constructor.name} > updateAutogeneratedPlaylistImages() > Playlist: ${playlist.name} > Playlist already has User Uploaded image`
 				);
 			}
 		} catch (err) {
+			const errStr = `${this.constructor.name} > updateAutogeneratedPlaylistImages() > Playlist: ${playlist.name} > Error: ${err}`;
+			logger.error(errStr);
+			throw new Error(errStr);
+		}
+	}
+
+	async getLastPlayedTracks(count = 50) {
+		try {
+			this.setUserTokens();
+			const lastPlayedRes = await this._spUtil.getMyRecentlyPlayedTracks({
+				limit: count,
+			});
+
+			const consolidatedTrackDetailsArr: RecentlyPlayedTrackDetails[] =
+				lastPlayedRes.body.items.map(history => {
+					return {
+						name: history.track.name.replace(/"/g, ""),
+						uri: history.track.uri,
+						id: history.track.id,
+						primaryArtist: history.track.artists[0].name,
+						featuringArtists:
+							history.track.artists.length > 1
+								? history.track.artists.slice(1).map(i => i.name)
+								: undefined,
+						album: history.track.album.name.replace(/"/g, ""),
+						duration: moment.utc(history.track.duration_ms).format("mm:ss"),
+						released: history.track.album.release_date,
+						lastPlayedAt: moment(history.played_at).format(
+							"YYYY-MM-DD h:mm:ss a"
+						),
+					};
+				});
+			logger.info(
+				`${this.constructor.name} > getLastPlayedTracks() > Last Played Tracks >> ${consolidatedTrackDetailsArr.length}`
+			);
+			return consolidatedTrackDetailsArr;
+		} catch (err) {
+			const errStr = `${this.constructor.name} > getLastPlayedTracks() > Error: ${err}`;
+			logger.error(errStr);
+			throw new Error(errStr);
+		}
+	}
+
+	async getGenreRecommendations() {
+		try {
+			this.setUserTokens();
+			const genreRecommendationsRes =
+				await this._spUtil.getAvailableGenreSeeds();
+			const recommendedGenres = genreRecommendationsRes.body.genres;
+			logger.info(
+				`${this.constructor.name} > getGenreRecommendations() > Genres Recommendations >> ${recommendedGenres.length}`
+			);
+			return recommendedGenres;
+		} catch (err) {
+			const errStr = `${this.constructor.name} > getGenreRecommendations() > Error: ${err}`;
+			logger.error(errStr);
+			throw new Error(errStr);
+		}
+	}
+
+	async getRecommendedTracks(config: {
+		count?: number;
+		seed_tracks_array?: TrackDetails[];
+		seed_genres_array?: string[];
+	}) {
+		try {
+			this.setUserTokens();
+			// only 5 seed tracks are allowed
+			const selected_seed_tracks =
+				config.seed_tracks_array && config.seed_tracks_array.length > 5
+					? config.seed_tracks_array.splice(0, 4)
+					: config.seed_tracks_array;
+			const seedTracksURI = selected_seed_tracks
+				? selected_seed_tracks.map(i => i.id)
+				: undefined;
+			const inputGenres =
+				config.seed_genres_array && config.seed_genres_array.length > 5
+					? config.seed_genres_array.splice(0, 4)
+					: config.seed_genres_array;
+			const recommedationFunction = this._spUtil.getRecommendations;
+			type requestConfigObj = NonNullable<
+				Parameters<typeof recommedationFunction>[0]
+			>;
+			const requestConfig: requestConfigObj = {
+				limit: config.count ?? 100,
+				seed_tracks: seedTracksURI,
+				seed_genres: inputGenres,
+				market: "IN",
+			};
+			logger.debug(
+				`${
+					this.constructor.name
+				} > getRecommendedTracks() > Recommendation Request Object: ${JSON.stringify(
+					requestConfig
+				)}`
+			);
+			const recommedationsResponse = await this._spUtil.getRecommendations(
+				requestConfig
+			);
+			const recommendedTracks: TrackDetails[] =
+				recommedationsResponse.body.tracks.map(track => {
+					return {
+						name: track.name.replace(/"/g, ""),
+						uri: track.uri,
+						id: track.id,
+						primaryArtist: track.artists[0].name,
+						featuringArtists:
+							track.artists.length > 1
+								? track.artists.slice(1).map(i => i.name)
+								: undefined,
+						album: track.album.name.replace(/"/g, ""),
+						duration: moment.utc(track.duration_ms).format("mm:ss"),
+						released: track.album.release_date,
+					};
+				});
+			logger.debug(
+				`${
+					this.constructor.name
+				} > getRecommendedTracks() > Recommendation Request Object: ${JSON.stringify(
+					requestConfig
+				)} >> Recommedated Tracks Received >> ${recommendedTracks.length}`
+			);
+			return recommendedTracks;
+		} catch (err) {
 			throw new Error(
-				`${this.constructor.name} > updateAutogeneratedPlaylistImages() > Playlist: ${playlist.name} > Error: ${err}`
+				`${this.constructor.name} > getRecommendedTracks() > Error: ${err}`
+			);
+		}
+	}
+
+	async updatePlaylistDetails(
+		playlist: PlaylistDetails,
+		updateOptions: {
+			name?: string;
+			description?: string;
+			collaborative?: boolean;
+			public?: boolean;
+		}
+	) {
+		try {
+			this.setUserTokens();
+			logger.info(
+				`${this.constructor.name} > updatePlaylistDetails() > Playlist: ${
+					playlist.name
+				} > Updating Below Details: ${JSON.stringify(updateOptions)}`
+			);
+			if (
+				updateOptions.name ||
+				updateOptions.description ||
+				updateOptions.collaborative !== undefined ||
+				updateOptions.public !== undefined
+			) {
+				await this._spUtil.changePlaylistDetails(playlist.id, {
+					name: updateOptions.name,
+					description: updateOptions.description,
+					public: updateOptions.public,
+					collaborative: updateOptions.collaborative,
+				});
+			}
+		} catch (err) {
+			throw new Error(
+				`${this.constructor.name} > updatePlaylistDetails() > Error: ${err}`
 			);
 		}
 	}

@@ -1,8 +1,9 @@
+import fs from "fs";
 import SpotifyWebApi from "spotify-web-api-node";
 import moment from "moment";
 import { Authorization, Token } from "../types";
 import * as C from "../resources/constants";
-import fs from "fs";
+import logger from "../resources/logger";
 
 export default class Base {
 	protected _authDetails: Authorization;
@@ -31,7 +32,11 @@ export default class Base {
 			}
 		}
 
-		console.log(`setClientTokens() > ${JSON.stringify(this._clientToken)}`);
+		logger.info(
+			`${this.constructor.name} > setClientTokens() > ${JSON.stringify(
+				this._clientToken
+			)}`
+		);
 		this._spUtil.setAccessToken(this._clientToken.access_token);
 	}
 
@@ -39,13 +44,20 @@ export default class Base {
 		if (!this._userToken?.access_token || !this._userToken?.expiry) {
 			const fileStr = fs.readFileSync("./token.json", { encoding: "utf8" });
 			this._userToken = JSON.parse(fileStr);
-			console.log(
-				`setUserTokens() > Read Tokens from File: ${JSON.stringify(
+			logger.info(
+				`${
+					this.constructor.name
+				} > setUserTokens() > Read Tokens from File: ${JSON.stringify(
 					this._userToken
 				)}`
 			);
 		}
-		if (this._userToken?.access_token) {
+		if (this._userToken?.access_token && this._userToken.expiry) {
+			if (this._userToken.expiry < moment().unix()) {
+				const errStr = `${this.constructor.name} > setUserTokens() > Token Expiry time has passed - Access token might be Expired - Generate new Token using TokenGenerator`;
+				logger.error(errStr);
+				throw new Error(errStr);
+			}
 			this._spUtil.setAccessToken(this._userToken.access_token);
 		}
 	}

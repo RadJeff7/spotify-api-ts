@@ -1,14 +1,13 @@
 import dotenv from "dotenv";
 dotenv.config();
-const utilSelected = process.env.UTIL_NAME || "all"; //use 'random' = randomPlaylist Generation, 'weekly' = weeklyPlaylist Generation, 'all' = all utility
+import { PuppeteerBrowser, Server } from "../core";
 import {
-	Server,
-	PuppeteerBrowser,
-	makeRandomPlaylists,
+	makeRandomPlaylistsFromDailyMix,
 	createWeeklyArchiveFromDiscoverWeekly,
-} from "./core";
-const sleep = (ms = 5000) => new Promise(r => setTimeout(r, ms));
+} from "../utilities";
 
+const sleep = (ms = 5000) => new Promise(r => setTimeout(r, ms));
+const utilSelected = process.env.UTIL_NAME || "all"; //use 'random' = randomPlaylist Generation, 'weekly' = weeklyPlaylist Generation, 'all' = all utility
 const actionsStatus: { [key: string]: boolean } = {
 	server: false,
 	auth: false,
@@ -50,7 +49,7 @@ const main = async () => {
 				console.log(
 					`****** Started Running Function to create Random Playlist from Daily Mix ****** \n\n`
 				);
-				await makeRandomPlaylists();
+				await makeRandomPlaylistsFromDailyMix();
 				console.log(
 					`****** Completed Function to create Random Playlist from Daily Mix ******  \n\n`
 				);
