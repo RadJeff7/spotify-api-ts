@@ -87,3 +87,13 @@ export const Unsplash_API_Creds = {
 	clientId: process.env.UNSPLASH_API_CLIENT_ID || "",
 	clientSecret: process.env.UNSPLASH_API_CLIENT_SECRET || "",
 };
+
+export const ImageSearhTerms = [
+	"playlist",
+	"concert",
+	"aesthetic",
+	"music",
+	"guitar",
+	"indie",
+	"hiphop",
+];

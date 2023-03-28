@@ -90,15 +90,6 @@ export default class ImageDownloader {
 	}
 
 	async downloadCoverArts(count = 10) {
-		const searhTerms = [
-			"playlist",
-			"concert",
-			"aesthetic",
-			"music",
-			"guitar",
-			"indie",
-			"hiphop",
-		];
 		const fullfolderPath = path.resolve(
 			__dirname,
 			`../../src/${C.Relative_Image_Folder}/download`
@@ -109,7 +100,7 @@ export default class ImageDownloader {
 			per_page: count,
 		};
 		const urls = await this.getImageURLsBySearch(
-			Helpers.getRandomItemsFromArray(searhTerms, 2).join(" "),
+			Helpers.getRandomItemsFromArray(C.ImageSearhTerms, 2).join(" "),
 			searchObj.page,
 			searchObj.per_page
 		);
