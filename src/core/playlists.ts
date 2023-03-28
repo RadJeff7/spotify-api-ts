@@ -541,13 +541,19 @@ export default class Playlists extends Base {
 					playlist.name
 				} > Updating Below Details: ${JSON.stringify(updateOptions)}`
 			);
-
-			await this._spUtil.changePlaylistDetails(playlist.id, {
-				name: updateOptions.name,
-				description: updateOptions.description,
-				public: updateOptions.public,
-				collaborative: updateOptions.collaborative,
-			});
+			if (
+				updateOptions.name ||
+				updateOptions.description ||
+				updateOptions.collaborative !== undefined ||
+				updateOptions.public !== undefined
+			) {
+				await this._spUtil.changePlaylistDetails(playlist.id, {
+					name: updateOptions.name,
+					description: updateOptions.description,
+					public: updateOptions.public,
+					collaborative: updateOptions.collaborative,
+				});
+			}
 		} catch (err) {
 			throw new Error(
 				`${this.constructor.name} > updatePlaylistDetails() > Error: ${err}`
