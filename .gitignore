@@ -12,3 +12,4 @@ package-lock.json
 .npmrc
 *.json
 *.png
+*.bat

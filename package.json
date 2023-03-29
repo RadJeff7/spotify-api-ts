@@ -13,7 +13,8 @@
 		"start:token": "node ./dist/runner/tokenGenerator",
 		"main": "node ./dist/runner/main",
 		"ciflow": "node ./dist/runner/CIFlow",
-		"profile:crawl": "node ./dist/runner/profileCrawler"
+		"profile:crawl": "node ./dist/runner/profileCrawler",
+		"build:scheduled": "npm run build && npm run ciflow"
 	},
 	"husky": {
 		"hooks": {
