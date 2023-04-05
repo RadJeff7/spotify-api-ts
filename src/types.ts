@@ -28,6 +28,8 @@ export interface TrackDetails {
 	released?: string;
 }
 
+export type SimpleTrackDetails = Pick<TrackDetails, "id" | "uri" | "name">;
+
 export interface RecentlyPlayedTrackDetails extends TrackDetails {
 	lastPlayedAt: string;
 }

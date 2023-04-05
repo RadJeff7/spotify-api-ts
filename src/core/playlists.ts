@@ -3,6 +3,7 @@ import {
 	Authorization,
 	PlaylistDetails,
 	RecentlyPlayedTrackDetails,
+	SimpleTrackDetails,
 	TrackDetails,
 } from "../types";
 import * as Helpers from "../resources/helpers";
@@ -156,32 +157,32 @@ export default class Playlists extends Base {
 
 	async addTracksToPlaylist(
 		playlist: PlaylistDetails,
-		tracks: { uri: string; name: string }[]
+		tracks: SimpleTrackDetails[]
 	) {
 		try {
 			this.setUserTokens();
 			// max length  for one time usage = 100
-			const inputTracks =
-				tracks.length > 100
-					? Helpers.getRandomItemsFromArray(tracks, 100)
-					: tracks;
-			const addTracksRes = await this._spUtil.addTracksToPlaylist(
-				playlist.id,
-				inputTracks.map(track => track.uri)
-			);
+			const inputTracksChunksArr = Helpers.groupsOfN(tracks, 100);
 
-			assert.equal(
-				addTracksRes.statusCode,
-				201,
-				`${this.constructor.name} > Playlist: ${playlist.name} > Adding Tracks To Playlist not successful`
-			);
-			logger.info(
-				`${this.constructor.name} > Playlist: ${
-					playlist.name
-				} > addTracksToPlaylist() > Successfully updated the playlist With Songs -> ${inputTracks
-					.map(track => track.name)
-					.join(" , ")}\n`
-			);
+			for (const inputTracks of inputTracksChunksArr) {
+				const addTracksRes = await this._spUtil.addTracksToPlaylist(
+					playlist.id,
+					inputTracks.map(track => track.uri)
+				);
+
+				assert.equal(
+					addTracksRes.statusCode,
+					201,
+					`${this.constructor.name} > Playlist: ${playlist.name} > Adding Tracks To Playlist not successful`
+				);
+				logger.info(
+					`${this.constructor.name} > Playlist: ${
+						playlist.name
+					} > addTracksToPlaylist() > Successfully updated the playlist With ${
+						inputTracks.length
+					} Songs -> ${inputTracks.map(track => track.name).join(" , ")}\n`
+				);
+			}
 		} catch (err) {
 			const errStr = `${this.constructor.name} > Playlist: ${playlist.name} > addTracksToPlaylist() > Error: ${err}`;
 			logger.error(errStr);
@@ -223,7 +224,7 @@ export default class Playlists extends Base {
 
 	async updatePlaylistWithSongs(
 		playlist: PlaylistDetails,
-		newTracks: { uri: string; name: string }[]
+		newTracks: SimpleTrackDetails[]
 	) {
 		try {
 			this.setUserTokens();
@@ -342,9 +343,7 @@ export default class Playlists extends Base {
 			const playlistDetailsBody = (await this._spUtil.getPlaylist(playlist.id))
 				.body;
 			logger.info(
-				`${this.constructor.name} > getPlaylistDetails() > Playlist: ${
-					playlist.name
-				} > Playlist Details: ${JSON.stringify(playlistDetailsBody)}`
+				`${this.constructor.name} > getPlaylistDetails() > Playlist: ${playlist.name} > Owner: ${playlistDetailsBody.owner.display_name}, Total Tracks: ${playlistDetailsBody.tracks.total}, Followers: ${playlistDetailsBody.followers.total}`
 			);
 			return playlistDetailsBody;
 		} catch (err) {
@@ -554,6 +553,21 @@ export default class Playlists extends Base {
 					collaborative: updateOptions.collaborative,
 				});
 			}
+		} catch (err) {
+			throw new Error(
+				`${this.constructor.name} > updatePlaylistDetails() > Error: ${err}`
+			);
+		}
+	}
+
+	async getTrackFeatures(track: SimpleTrackDetails) {
+		try {
+			this.setUserTokens();
+			const audioFeatureRes = await this._spUtil.getAudioFeaturesForTrack(
+				track.id
+			);
+			const audioFeatureObj = audioFeatureRes.body;
+			return audioFeatureObj;
 		} catch (err) {
 			throw new Error(
 				`${this.constructor.name} > updatePlaylistDetails() > Error: ${err}`

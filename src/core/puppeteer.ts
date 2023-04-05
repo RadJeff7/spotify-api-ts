@@ -126,7 +126,10 @@ export default class BrowserClass {
 			if (!this._authPage) {
 				await this.handleSpotifyLogin();
 			}
-			assert.ok((await this._authPage.title()).includes(`Authorize`));
+			assert.ok(
+				(await this._authPage.title()).includes(`Authorize`),
+				"Authorization Page Not Loaded"
+			);
 			logger.info(
 				`${
 					this.constructor.name
@@ -152,7 +155,7 @@ export default class BrowserClass {
 				? this._loginPage
 				: undefined;
 			await this.handleErrors(
-				`${this.constructor.name} > handleSpotifyLogin() > Failure in handling Spotify Login Page: ${err}`
+				`${this.constructor.name} > handleSpotifyAuthorization() > Failure in handling Spotify Auth Page: ${err}`
 			);
 		}
 	}

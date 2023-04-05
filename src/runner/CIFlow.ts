@@ -44,7 +44,9 @@ const main = async () => {
 			const totalTime = (performance.now() - serverStart) / 1000;
 
 			console.log(
-				`Total Time Taken in Running all utils is - ${totalTime} seconds`
+				`Total Time Taken in Running all utils is - ${totalTime.toFixed(
+					2
+				)} seconds`
 			);
 			process.exit(0);
 		} else {
