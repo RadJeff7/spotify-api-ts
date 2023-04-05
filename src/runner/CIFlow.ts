@@ -1,18 +1,11 @@
-import dotenv from "dotenv";
-dotenv.config();
 import { PuppeteerBrowser, Server } from "../core";
-import {
-	makeRandomPlaylistsFromDailyMix,
-	createWeeklyArchiveFromDiscoverWeekly,
-} from "../utilities";
+import { runAllSpotifyUtils } from "./runnerUtilities";
 
 const sleep = (ms = 5000) => new Promise(r => setTimeout(r, ms));
-const utilSelected = process.env.UTIL_NAME || "all"; //use 'random' = randomPlaylist Generation, 'weekly' = weeklyPlaylist Generation, 'all' = all utility
 const actionsStatus: { [key: string]: boolean } = {
 	server: false,
 	auth: false,
-	playlistUtil_1: false,
-	playlistUtil_2: false,
+	playlistUtils: false,
 };
 
 const main = async () => {
@@ -44,44 +37,16 @@ const main = async () => {
 	if (actionsStatus.auth) {
 		console.log(`tokenGenerator() >  Ready to Run Main Utilities now`);
 		await sleep();
-		if (utilSelected.match(/random|all/i)) {
-			try {
-				console.log(
-					`****** Started Running Function to create Random Playlist from Daily Mix ****** \n\n`
-				);
-				await makeRandomPlaylistsFromDailyMix();
-				console.log(
-					`****** Completed Function to create Random Playlist from Daily Mix ******  \n\n`
-				);
-				actionsStatus.playlistUtil_1 = true;
-			} catch (err) {
-				console.error(`Error in Random Playlist from Daily Mix -> ${err}`);
-			}
-		}
-		if (utilSelected.match(/all/i)) await sleep();
-		if (utilSelected.match(/weekly|all/i)) {
-			try {
-				console.log(
-					`****** Started Running Function to create Archival Playlist from Discover Weekly ******  \n\n`
-				);
-				await createWeeklyArchiveFromDiscoverWeekly();
-
-				console.log(
-					`****** Completed Function to create Archival Playlist from Discover Weekly ******  \n\n`
-				);
-				actionsStatus.playlistUtil_2 = true;
-			} catch (err) {
-				console.error(
-					`Error in creating Archival Playlist from Discover Weekly -> ${err}`
-				);
-			}
-		}
+		await runAllSpotifyUtils();
+		actionsStatus.playlistUtils = true;
 		const allUtilsPassed = Object.values(actionsStatus).every(i => i);
 		if (allUtilsPassed) {
 			const totalTime = (performance.now() - serverStart) / 1000;
 
 			console.log(
-				`Total Time Taken in Running all utils is - ${totalTime} seconds`
+				`Total Time Taken in Running all utils is - ${totalTime.toFixed(
+					2
+				)} seconds`
 			);
 			process.exit(0);
 		} else {
@@ -94,7 +59,7 @@ const main = async () => {
 		}
 	} else {
 		console.log(
-			`AUth Utils Didnt Pass -> Skipping rest -> Status: ${JSON.stringify(
+			`Auth Utils Didnt Pass -> Skipping rest -> Status: ${JSON.stringify(
 				actionsStatus
 			)}`
 		);

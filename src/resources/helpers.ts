@@ -29,3 +29,13 @@ export const deleteAndCreateFolder = (path: string) => {
 
 	if (!fs.existsSync(path)) fs.mkdirSync(path);
 };
+
+export const groupsOfN = <T>(arr: T[], n: number): T[][] => {
+	const inputArr = arr;
+	const resultArr: T[][] = [];
+	while (inputArr.length) {
+		const group = inputArr.splice(-n);
+		resultArr.push(group);
+	}
+	return resultArr;
+};

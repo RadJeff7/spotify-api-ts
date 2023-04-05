@@ -103,7 +103,7 @@ const GivenUsersPlaylistCrawler = async (userId: string) => {
 			sourcePlaylists.map(async playlist => {
 				const randomTracks = await playlistUtil.getRandomSongsFromPlaylist(
 					playlist,
-					3
+					5
 				);
 				if (randomTracks && randomTracks.length) {
 					allRandomTracks.push(...randomTracks);
@@ -114,10 +114,10 @@ const GivenUsersPlaylistCrawler = async (userId: string) => {
 			`userPlaylistCrawler() > Total Random Tracks picked From Recommending User: ${userDetails.display_name}'s playlist >> ${allRandomTracks.length} - Adding Them to ${newPlaylist.name}`
 		);
 		const targetTracks = allRandomTracks.map(i => {
-			return { uri: i.uri, name: i.name };
+			return { uri: i.uri, name: i.name, id: i.id };
 		});
 		await playlistUtil.updatePlaylistWithSongs(newPlaylist, targetTracks);
-		await playlistUtil.maintainPlaylistsAtSize(newPlaylist, 80);
+		await playlistUtil.maintainPlaylistsAtSize(newPlaylist, 100);
 	}
 };
 
