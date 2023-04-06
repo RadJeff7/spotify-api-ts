@@ -7,6 +7,7 @@ import {
 	TrackDetails,
 } from "../types";
 import * as Helpers from "../resources/helpers";
+import * as C from "../resources/constants";
 import Base from "./base";
 import fs from "fs";
 import moment from "moment";
@@ -100,7 +101,7 @@ export default class Playlists extends Base {
 
 	async getAllTracksForGivenPlaylist(playlist: PlaylistDetails) {
 		const allTracksArr: SpotifyApi.TrackObjectFull[] = [];
-		const limit = 100;
+		const limit = C.PLAYLIST_USAGE_MAX_LIMIT;
 		let count = limit;
 		try {
 			this.setUserTokens();
@@ -162,7 +163,10 @@ export default class Playlists extends Base {
 		try {
 			this.setUserTokens();
 			// max length  for one time usage = 100
-			const inputTracksChunksArr = Helpers.groupsOfN(tracks, 100);
+			const inputTracksChunksArr = Helpers.groupsOfN(
+				tracks,
+				C.PLAYLIST_USAGE_MAX_LIMIT
+			);
 
 			for (const inputTracks of inputTracksChunksArr) {
 				const addTracksRes = await this._spUtil.addTracksToPlaylist(
@@ -312,22 +316,49 @@ export default class Playlists extends Base {
 			} else {
 				let deletionSize = playlistLength - size;
 				if (deletionSize > 0) {
-					deletionSize = deletionSize >= 100 ? 100 : deletionSize;
+					deletionSize =
+						deletionSize >= C.PLAYLIST_USAGE_MAX_LIMIT
+							? C.PLAYLIST_USAGE_MAX_LIMIT
+							: deletionSize;
+
 					const randomSongsForDeletion: SpotifyApi.TrackObjectFull[] =
 						Helpers.getRandomItemsFromArray(allTracksArr, deletionSize);
 					logger.info(
-						`${this.constructor.name} > maintainPlaylistsAtSize() > Playlist: ${
-							playlist.name
-						} > Playlist size(${playlistLength}) is more than Max Size(${size}) - Deleting ${deletionSize} songs -> ${randomSongsForDeletion
-							.map(song => song.name)
-							.join(" , ")}.\n`
+						`${this.constructor.name} > maintainPlaylistsAtSize() > Playlist: ${playlist.name} > Playlist size(${playlistLength}) is more than Max Size(${size}) - Deleting in Total ${deletionSize} songs `
 					);
-					return await this.deleteSongsFromPlaylist(
-						playlist,
-						randomSongsForDeletion.map(song => {
-							return { uri: song.uri };
-						})
+
+					// max length  for one time usage = 100
+					const toBeDeletedTracksChunksArr = Helpers.groupsOfN(
+						randomSongsForDeletion,
+						C.PLAYLIST_USAGE_MAX_LIMIT
 					);
+
+					let deletedTracksCount = 0;
+					for (const tobeDeletedTracks of toBeDeletedTracksChunksArr) {
+						logger.info(
+							`${
+								this.constructor.name
+							} > maintainPlaylistsAtSize() > Playlist: ${
+								playlist.name
+							} > Current Playlist size(${
+								playlistLength - deletedTracksCount
+							}) is more than Max Size(${size}) - Deleted ${
+								tobeDeletedTracks.length
+							} songs In Batch -> ${tobeDeletedTracks
+								.map(track => track.name)
+								.join(" , ")}.\n`
+						);
+						await this.deleteSongsFromPlaylist(
+							playlist,
+							tobeDeletedTracks.map(track => {
+								return { uri: track.uri };
+							})
+						);
+						deletedTracksCount += tobeDeletedTracks.length;
+						if (deletedTracksCount >= deletionSize) {
+							break;
+						}
+					}
 				}
 			}
 		} catch (err) {
@@ -478,7 +509,7 @@ export default class Playlists extends Base {
 				Parameters<typeof recommedationFunction>[0]
 			>;
 			const requestConfig: requestConfigObj = {
-				limit: config.count ?? 100,
+				limit: config.count ?? 50, //max can be set to 100
 				seed_tracks: seedTracksURI,
 				seed_genres: inputGenres,
 				market: "IN",

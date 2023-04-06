@@ -97,3 +97,5 @@ export const ImageSearhTerms = [
 	"indie",
 	"hiphop",
 ];
+
+export const PLAYLIST_USAGE_MAX_LIMIT = 100 as const;
