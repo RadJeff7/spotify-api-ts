@@ -29,6 +29,7 @@ jobs:
           SPOTIFY_USER_PASS: ${{ secrets.SPOTIFY_USER_PASS }}
           SPOTIFY_USER_EMAIL: ${{ vars.SPOTIFY_USER_EMAIL}}
           SPOTIFY_API_CLIENT_ID: ${{vars.SPOTIFY_API_CLIENT_ID}}
+          UNSPLASH_API_CLIENT_ID: ${{vars.UNSPLASH_API_CLIENT_ID}}
       - run: npm i
       - run: npm run ciflow
       - name: Archive artifacts

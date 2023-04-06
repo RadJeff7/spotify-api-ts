@@ -50,6 +50,7 @@ jobs:
           SPOTIFY_USER_PASS: ${{ github.event.inputs.spotify_user_pass }}
           SPOTIFY_USER_EMAIL: ${{ github.event.inputs.spotify_user_name}}
           SPOTIFY_API_CLIENT_ID: ${{vars.SPOTIFY_API_CLIENT_ID}}
+          UNSPLASH_API_CLIENT_ID: ${{vars.UNSPLASH_API_CLIENT_ID}}
           UTIL_NAME: ${{github.event.inputs.util_name}}
       - run: npm i
       - run: npm run ciflow
