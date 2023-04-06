@@ -27,7 +27,7 @@ export default class ImageDownloader {
 		assert.ok(result.filename);
 	}
 
-	protected async getUnsplashUtil() {
+	protected getUnsplashUtil() {
 		if (!this._unsplashUtil) {
 			if (!this._unsplashAPIAuth.clientId) {
 				const errStr = `${this.constructor.name} > getUnsplashUtil() > Client ID not set`;
