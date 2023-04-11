@@ -83,16 +83,28 @@ export const DEFAULT_SPOTIFY_USER = {
 	username: "RadJeff",
 	profile_url: "https://open.spotify.com/user/rajdeepde77?si=8af6aede337c43b3",
 };
+
+export const DEFAULT_PLAYLIST_FOR_CRAWL =
+	"https://open.spotify.com/playlist/6GPDJt2IcoelLKSPOg96N6?si=53cca069a7e04a34";
+
 export const Unsplash_API_Creds = {
 	clientId: process.env.UNSPLASH_API_CLIENT_ID || "",
 	clientSecret: process.env.UNSPLASH_API_CLIENT_SECRET || "",
 };
 
 export const ImageSearhTerms = [
+	"music",
 	"playlist",
+	"album",
+	"singer",
+	"instruments",
+	"concert",
+	"DJ",
+	"vinyl",
+	"headphones",
+	"speakers",
 	"concert",
 	"aesthetic",
-	"music",
 	"guitar",
 	"indie",
 	"hiphop",
