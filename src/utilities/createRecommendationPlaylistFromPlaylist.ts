@@ -37,6 +37,12 @@ const makeRecommendationPlaylistsFromPlaylist = async (
 				};
 		  })[0];
 
+	if (!playlist) {
+		const errStr = `makeRecommendationPlaylistsFromPlaylist() > Source Playlist not found - skipping rest of the process`;
+		logger.error(errStr);
+		throw new Error(errStr);
+	}
+
 	// Update Playlist name and Description - new playlist will be created if required - else tracks will be appended
 	const newPlaylistName = C.RecommendationsPlaylistFromUser.name.replace(
 		/user/gi,
@@ -56,7 +62,7 @@ const makeRecommendationPlaylistsFromPlaylist = async (
 	);
 	if (!targetPlaylistExistsInCurrentUser) {
 		logger.info(
-			`userPlaylistCrawler() > ${newPlaylistName} needs to be created in Current User profile`
+			`makeRecommendationPlaylistsFromPlaylist() > ${newPlaylistName} needs to be created in Current User profile`
 		);
 		newPlaylist = await playlistUtil.createNewPlaylist(
 			newPlaylistName,
@@ -64,7 +70,7 @@ const makeRecommendationPlaylistsFromPlaylist = async (
 		);
 	} else {
 		logger.info(
-			`userPlaylistCrawler() > ${newPlaylistName} already exists in Current User profile`
+			`makeRecommendationPlaylistsFromPlaylist() > ${newPlaylistName} already exists in Current User profile`
 		);
 		newPlaylist = {
 			id: targetPlaylistExistsInCurrentUser.id,
@@ -73,33 +79,39 @@ const makeRecommendationPlaylistsFromPlaylist = async (
 		};
 	}
 	logger.info(
-		`userPlaylistCrawler() > Target Playlist >> ${JSON.stringify(newPlaylist)}`
-	);
-	if (newPlaylist) {
-		await commons.updatePlaylistCoverImagesFromUnsplashUtil(
-			playlistUtil,
+		`makeRecommendationPlaylistsFromPlaylist() > Target Playlist >> ${JSON.stringify(
 			newPlaylist
-		);
-
-		const { avgAudioFeatures, frequentGenres, randomTrack } =
-			await playlistUtil.getAvgAudioFeaturesBasedOnPlaylist(playlist);
-
-		const recommendedTracks = await playlistUtil.getRecommendedTracks({
-			count: 50,
-			seed_tracks_array: [randomTrack],
-			seed_genres_array: frequentGenres,
-			audioFeatures: avgAudioFeatures,
-		});
-
-		logger.info(
-			`makeRecommendationPlaylists() > Total Tracks picked From Recommendations >> ${recommendedTracks.length} - Adding Them to ${newPlaylist.name}`
-		);
-		const targetTracks = recommendedTracks.map(i => {
-			return { uri: i.uri, name: i.name, id: i.id };
-		});
-		await playlistUtil.updatePlaylistWithSongs(newPlaylist, targetTracks);
-		await playlistUtil.maintainPlaylistsAtSize(newPlaylist, 70);
+		)}`
+	);
+	if (!newPlaylist) {
+		const errStr = `makeRecommendationPlaylistsFromPlaylist() > Destination Playlist not found - skipping rest of the process`;
+		logger.error(errStr);
+		throw new Error(errStr);
 	}
+
+	await commons.updatePlaylistCoverImagesFromUnsplashUtil(
+		playlistUtil,
+		newPlaylist
+	);
+
+	const { avgAudioFeatures, frequentGenres, randomTrack } =
+		await playlistUtil.getAvgAudioFeaturesBasedOnPlaylist(playlist);
+
+	const recommendedTracks = await playlistUtil.getRecommendedTracks({
+		count: 50,
+		seed_tracks_array: [randomTrack],
+		seed_genres_array: frequentGenres,
+		audioFeatures: avgAudioFeatures,
+	});
+
+	logger.info(
+		`makeRecommendationPlaylistsFromPlaylist() > Total Tracks picked From Recommendations >> ${recommendedTracks.length} - Adding Them to ${newPlaylist.name}`
+	);
+	const targetTracks = recommendedTracks.map(i => {
+		return { uri: i.uri, name: i.name, id: i.id };
+	});
+	await playlistUtil.updatePlaylistWithSongs(newPlaylist, targetTracks);
+	await playlistUtil.maintainPlaylistsAtSize(newPlaylist, 70);
 };
 
 export { makeRecommendationPlaylistsFromPlaylist as default };
