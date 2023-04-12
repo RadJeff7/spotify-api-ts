@@ -61,6 +61,12 @@ export const RecommendationsPlaylistFromUser = {
 		"Random Songs picked from USER's playlists - created by spotify api 🎶 - ",
 };
 
+export const SimilarPlaylistFromPlaylist = {
+	name: "'User' - Similar Recommendations",
+	description:
+		"Songs with similar features of 'Given' Playlist Recommeded by Spotify - created by spotify api 🎶 -",
+};
+
 export const Spotify_User_Creds = {
 	email: process.env.SPOTIFY_USER_EMAIL || "", //Mention User Email in .env file
 	password: process.env.SPOTIFY_USER_PASS || "", //Mention User password in .env file

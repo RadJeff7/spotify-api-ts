@@ -526,7 +526,7 @@ export default class Playlists extends Base {
 				target_valence: config.audioFeatures?.valence,
 				market: "IN",
 			};
-			logger.debug(
+			logger.info(
 				`${
 					this.constructor.name
 				} > getRecommendedTracks() > Recommendation Request Object: ${JSON.stringify(
@@ -552,12 +552,18 @@ export default class Playlists extends Base {
 						released: track.album.release_date,
 					};
 				});
-			logger.debug(
+			logger.info(
 				`${
 					this.constructor.name
 				} > getRecommendedTracks() > Recommendation Request Object: ${JSON.stringify(
 					requestConfig
-				)} >> Recommedated Tracks Received >> ${recommendedTracks.length}`
+				)} >> Recommedated Tracks Received >> ${
+					recommendedTracks.length
+				} >> Songs are: ${recommendedTracks
+					.map(i => {
+						return `${i.name} - By ${i.primaryArtist}`;
+					})
+					.join(" , ")}`
 			);
 			return recommendedTracks;
 		} catch (err) {
@@ -847,11 +853,21 @@ export default class Playlists extends Base {
 				}: ${JSON.stringify(avgAudioFeatures)}`
 			);
 
-			return {
+			const analyzedFeaturesObj: AverageTrackFeaturesWithGenres = {
 				avgAudioFeatures,
 				frequentGenres: targetGenres,
 				randomTrack,
 			};
+
+			logger.info(
+				`${
+					this.constructor.name
+				} > getAvgAudioFeaturesBasedOnPlaylist() > Complete Audio Features Analysis: ${
+					playlist.name
+				}: ${JSON.stringify(analyzedFeaturesObj)}`
+			);
+
+			return analyzedFeaturesObj;
 		} catch (err) {
 			throw new Error(
 				`${this.constructor.name} > getAvgAudioFeaturesBasedOnPlaylist() > Error: ${err}`

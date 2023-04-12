@@ -3,7 +3,7 @@ import makeRandomPlaylistsFromDailyMix from "./makeRandomPlaylists";
 import createRecommendationPlaylist from "./createRecommendationPlaylist";
 import GivenUsersPlaylistCrawler from "./userPlaylistCrawler";
 import FollowedUserPlaylistCrawler from "./followedPlaylistsCrawler";
-import makeRecommendationPlaylistsFromPlaylist from "./createRecommendationPlaylistFromPlaylist";
+import makeSimilarPlaylistFromPlaylist from "./createSimilarPlaylistFromPlaylists";
 
 export {
 	createWeeklyArchiveFromDiscoverWeekly,
@@ -11,5 +11,5 @@ export {
 	createRecommendationPlaylist,
 	GivenUsersPlaylistCrawler,
 	FollowedUserPlaylistCrawler,
-	makeRecommendationPlaylistsFromPlaylist,
+	makeSimilarPlaylistFromPlaylist,
 };

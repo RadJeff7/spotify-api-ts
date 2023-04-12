@@ -3,7 +3,7 @@ dotenv.config();
 import * as readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 import * as C from "../resources/constants";
-import { makeRecommendationPlaylistsFromPlaylist } from "../utilities";
+import { makeSimilarPlaylistFromPlaylist } from "../utilities";
 import { userPlaylistsRecommedationGererator } from "./runnerUtilities";
 
 const crawlerSelected = process.env.CRAWLER_UTIL_NAME || "automatic";
@@ -48,7 +48,7 @@ const recommededPlaylistCreateWithPlaylistURLInput = async () => {
 		.split("/playlist/")[1];
 
 	if (recommedingPlaylistId)
-		await makeRecommendationPlaylistsFromPlaylist(recommedingPlaylistId);
+		await makeSimilarPlaylistFromPlaylist(recommedingPlaylistId);
 
 	console.log(
 		`****** Completed Function to create Random Playlist from Playlist URL  ****** \n\n`

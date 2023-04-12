@@ -5,7 +5,7 @@ import {
 	makeRandomPlaylistsFromDailyMix,
 	createWeeklyArchiveFromDiscoverWeekly,
 	createRecommendationPlaylist,
-	makeRecommendationPlaylistsFromPlaylist,
+	makeSimilarPlaylistFromPlaylist,
 } from "../utilities";
 const sleep = (ms = 5000) => new Promise(r => setTimeout(r, ms));
 
@@ -57,15 +57,15 @@ export const runAllSpotifyUtils = async () => {
 export const userPlaylistsRecommedationGererator = async (count = 1) => {
 	for (let i = 0; i < count; i++) {
 		console.log(
-			`****** Started Running Function to create Random Recommedation Playlist ${
+			`****** Started Running Function to create Random Similar Playlist ${
 				i + 1
-			} from UserPlaylists ****** \n\n`
+			} from User's Playlists ****** \n\n`
 		);
-		await makeRecommendationPlaylistsFromPlaylist();
+		await makeSimilarPlaylistFromPlaylist();
 		console.log(
-			`****** Completed Function to create Random Recommedation Playlist ${
+			`****** Completed Function to create Random Similar Playlist ${
 				i + 1
-			} from UserPlaylists ****** \n\n`
+			} from User's Playlists ****** \n\n`
 		);
 	}
 };

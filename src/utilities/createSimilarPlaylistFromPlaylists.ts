@@ -5,13 +5,11 @@ import * as C from "../resources/constants";
 import { PlaylistDetails } from "../types";
 import logger from "../resources/logger";
 
-const makeRecommendationPlaylistsFromPlaylist = async (
-	inpuPlaylistId?: string
-) => {
+const makeSimilarPlaylistFromPlaylist = async (inpuPlaylistId?: string) => {
 	const playlistUtil = new Playlists();
 	const playlists = await playlistUtil.getAllUserPlaylists();
 	logger.info(
-		`makeRecommendationPlaylistsFromPlaylist() > Total User Playlists >> ${playlists.length}`
+		`makeSimilarPlaylistFromPlaylist() > Total User Playlists >> ${playlists.length}`
 	);
 
 	const playlist = inpuPlaylistId
@@ -38,19 +36,19 @@ const makeRecommendationPlaylistsFromPlaylist = async (
 		  })[0];
 
 	if (!playlist) {
-		const errStr = `makeRecommendationPlaylistsFromPlaylist() > Source Playlist not found - skipping rest of the process`;
+		const errStr = `makeSimilarPlaylistFromPlaylist() > Source Playlist not found - skipping rest of the process`;
 		logger.error(errStr);
 		throw new Error(errStr);
 	}
 
 	// Update Playlist name and Description - new playlist will be created if required - else tracks will be appended
-	const newPlaylistName = C.RecommendationsPlaylistFromUser.name.replace(
+	const newPlaylistName = C.SimilarPlaylistFromPlaylist.name.replace(
 		/user/gi,
-		playlist.name
+		playlist.name.trim()
 	);
-	const newPlaylistDescription = `${C.RecommendationsPlaylistFromUser.description.replace(
-		/USER's playlists/gi,
-		playlist.name + " playlist"
+	const newPlaylistDescription = `${C.SimilarPlaylistFromPlaylist.description.replace(
+		/Given/gi,
+		playlist.name
 	)} Source Playlist URL: https://open.spotify.com/playlist/${playlist.id}${
 		playlist.owner ? " - From Owner: " + playlist.owner : ""
 	}`;
@@ -70,7 +68,7 @@ const makeRecommendationPlaylistsFromPlaylist = async (
 		);
 	} else {
 		logger.info(
-			`makeRecommendationPlaylistsFromPlaylist() > ${newPlaylistName} already exists in Current User profile`
+			`makeSimilarPlaylistFromPlaylist() > ${newPlaylistName} already exists in Current User profile`
 		);
 		newPlaylist = {
 			id: targetPlaylistExistsInCurrentUser.id,
@@ -79,12 +77,12 @@ const makeRecommendationPlaylistsFromPlaylist = async (
 		};
 	}
 	logger.info(
-		`makeRecommendationPlaylistsFromPlaylist() > Target Playlist >> ${JSON.stringify(
+		`makeSimilarPlaylistFromPlaylist() > Target Playlist >> ${JSON.stringify(
 			newPlaylist
 		)}`
 	);
 	if (!newPlaylist) {
-		const errStr = `makeRecommendationPlaylistsFromPlaylist() > Destination Playlist not found - skipping rest of the process`;
+		const errStr = `makeSimilarPlaylistFromPlaylist() > Destination Playlist not found - skipping rest of the process`;
 		logger.error(errStr);
 		throw new Error(errStr);
 	}
@@ -105,7 +103,7 @@ const makeRecommendationPlaylistsFromPlaylist = async (
 	});
 
 	logger.info(
-		`makeRecommendationPlaylistsFromPlaylist() > Total Tracks picked From Recommendations >> ${recommendedTracks.length} - Adding Them to ${newPlaylist.name}`
+		`makeSimilarPlaylistFromPlaylist() > Total Tracks picked From Recommendations >> ${recommendedTracks.length} - Adding Them to ${newPlaylist.name}`
 	);
 	const targetTracks = recommendedTracks.map(i => {
 		return { uri: i.uri, name: i.name, id: i.id };
@@ -114,4 +112,4 @@ const makeRecommendationPlaylistsFromPlaylist = async (
 	await playlistUtil.maintainPlaylistsAtSize(newPlaylist, 70);
 };
 
-export { makeRecommendationPlaylistsFromPlaylist as default };
+export { makeSimilarPlaylistFromPlaylist as default };
