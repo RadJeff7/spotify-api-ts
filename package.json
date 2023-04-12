@@ -14,6 +14,7 @@
 		"main": "node ./dist/runner/main",
 		"ciflow": "node ./dist/runner/CIFlow",
 		"profile:crawl": "node ./dist/runner/profileCrawler",
+		"similar:playlist": "node ./dist/runner/playlistRecommedations",
 		"build:scheduled": "npm run build && npm run ciflow"
 	},
 	"husky": {

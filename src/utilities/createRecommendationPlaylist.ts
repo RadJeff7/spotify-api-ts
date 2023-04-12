@@ -5,7 +5,7 @@ import * as C from "../resources/constants";
 import { PlaylistDetails } from "../types";
 import logger from "../resources/logger";
 
-const makeRecommendationPlaylists = async () => {
+const makeRecommendationPlaylistsFromUser = async () => {
 	const playlistUtil = new Playlists();
 	const playlists = await playlistUtil.getAllUserPlaylists();
 	logger.info(
@@ -80,4 +80,4 @@ const makeRecommendationPlaylists = async () => {
 	}
 };
 
-export { makeRecommendationPlaylists as default };
+export { makeRecommendationPlaylistsFromUser as default };

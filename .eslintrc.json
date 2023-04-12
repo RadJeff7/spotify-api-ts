@@ -12,6 +12,6 @@
 	},
 	"plugins": ["@typescript-eslint"],
 	"rules": {
-		"no-mixed-spaces-and-tabs": 1
+		"no-mixed-spaces-and-tabs": 0
 	}
 }

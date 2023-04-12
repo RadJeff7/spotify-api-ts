@@ -33,3 +33,25 @@ export type SimpleTrackDetails = Pick<TrackDetails, "id" | "uri" | "name">;
 export interface RecentlyPlayedTrackDetails extends TrackDetails {
 	lastPlayedAt: string;
 }
+
+export type TrackFeatures = {
+	trackName: string;
+	trackId: string;
+	audioFeatures: Pick<
+		SpotifyApi.AudioFeaturesResponse,
+		| "acousticness"
+		| "danceability"
+		| "energy"
+		| "instrumentalness"
+		| "liveness"
+		| "speechiness"
+		| "valence"
+		| "duration_ms"
+	>;
+};
+
+export type AverageTrackFeaturesWithGenres = {
+	avgAudioFeatures: TrackFeatures["audioFeatures"];
+	frequentGenres: string[];
+	randomTrack: TrackDetails;
+};

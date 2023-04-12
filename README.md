@@ -14,7 +14,11 @@ Spotify Generates a Weekly Playlist which gets auto-refreshed each week, now thi
 
 Spotify create 5-6 Daily Mix Playlist which gets auto-refreshed each day, now this will randomly pick few songs and archive those for me to listen those recommendations later
 
-Each of these are designed to maintain the playlist size at user-defined length, to avoid over-crowding. Also has ability to upload playlist cover image.
+👉 **Analyze any given Playlist & Get Recommedations based on those audio Features, store them in a new Playlist** 🚀
+
+Provide any Playlist URL, this will analyze the given playlist and get average Audio Features of the songs, get most frequent Genres from the songs. Based on those, Recommended Tracks will be fetched and will be stored in a new Playlist
+
+Each of these are designed to maintain the playlist size at user-defined length, to avoid over-crowding. Also has ability to search & update playlist cover image From Unsplash.
 
 ## Getting Started
 
