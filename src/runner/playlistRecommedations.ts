@@ -65,7 +65,7 @@ const main = async () => {
 
 main()
 	.catch(err => {
-		console.error(`PlaylistCrawler() Error >> ${err}`);
+		console.error(`PlaylistRecommedationCreator() Error >> ${err}`);
 	})
 	.then(() => {
 		console.log("END");
