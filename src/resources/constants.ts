@@ -62,7 +62,7 @@ export const RecommendationsPlaylistFromUser = {
 };
 
 export const SimilarPlaylistFromPlaylist = {
-	name: "'User' - Similar Recommendations",
+	name: "'User' - Similar Tracks",
 	description:
 		"Songs with similar features of 'Given' Playlist Recommeded by Spotify - created by spotify api 🎶 -",
 };
