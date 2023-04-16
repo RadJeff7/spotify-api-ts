@@ -1,6 +1,6 @@
 import { Playlists } from "../core";
 import * as C from "../resources/constants";
-import { PlaylistDetails } from "../types";
+import { PlaylistDetails, PlaylistTrackObject } from "../types";
 import path from "path";
 import logger from "../resources/logger";
 
@@ -66,7 +66,7 @@ const makeRandomPlaylists = async () => {
 				`makeRandomPlaylists() > Error In Updating Playlist Image: ${err}`
 			);
 		}
-		const allRandomTracks: SpotifyApi.TrackObjectFull[] = [];
+		const allRandomTracks: PlaylistTrackObject[] = [];
 
 		await Promise.all(
 			featuredPlaylists.map(async playlist => {
@@ -83,7 +83,7 @@ const makeRandomPlaylists = async () => {
 			`makeRandomPlaylists() > Total Random Tracks picked From Daily Mix >> ${allRandomTracks.length} - Adding Them to ${newPlaylist.name}`
 		);
 		const targetTracks = allRandomTracks.map(i => {
-			return { uri: i.uri, name: i.name, id: i.id };
+			return { uri: i.track.uri, name: i.track.name, id: i.track.id };
 		});
 		await playlistUtil.updatePlaylistWithSongs(newPlaylist, targetTracks);
 		await playlistUtil.maintainPlaylistsAtSize(newPlaylist);

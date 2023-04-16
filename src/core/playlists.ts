@@ -7,6 +7,7 @@ import {
 	TrackDetails,
 	TrackFeatures,
 	AverageTrackFeaturesWithGenres,
+	PlaylistTrackObject,
 } from "../types";
 import * as Helpers from "../resources/helpers";
 import * as C from "../resources/constants";
@@ -102,7 +103,7 @@ export default class Playlists extends Base {
 	}
 
 	async getAllTracksForGivenPlaylist(playlist: PlaylistDetails) {
-		const allTracksArr: SpotifyApi.TrackObjectFull[] = [];
+		const allTracksArr: PlaylistTrackObject[] = [];
 		const limit = C.PLAYLIST_USAGE_MAX_LIMIT;
 		let count = limit;
 		try {
@@ -124,7 +125,12 @@ export default class Playlists extends Base {
 				}`
 			);
 			playlistTracksResponse.body.items.map(i => {
-				if (i.track) allTracksArr.push(i.track);
+				if (i.track)
+					allTracksArr.push({
+						track: i.track,
+						added_at: i.added_at,
+						added_by: i.added_by.display_name,
+					});
 			});
 			const totalTracksToBeFetched =
 				totalTracksPresent > 1000 ? 1000 : totalTracksPresent;
@@ -135,7 +141,12 @@ export default class Playlists extends Base {
 				);
 
 				playlistTracksResponse.body.items.map(i => {
-					if (i.track) allTracksArr.push(i.track);
+					if (i.track)
+						allTracksArr.push({
+							track: i.track,
+							added_at: i.added_at,
+							added_by: i.added_by.display_name,
+						});
 				});
 				count += limit;
 				logger.info(
@@ -243,7 +254,7 @@ export default class Playlists extends Base {
 			const uniqueTracks = newTracks.filter(
 				newTrack =>
 					!tracksInPlaylist.some(
-						existingTrack => existingTrack.uri === newTrack.uri
+						existingTrack => existingTrack.track.uri === newTrack.uri
 					)
 			);
 			logger.info(
@@ -260,7 +271,7 @@ export default class Playlists extends Base {
 	}
 
 	async getRandomSongsFromPlaylist(playlist: PlaylistDetails, count = 10) {
-		let randomTracksArr: SpotifyApi.TrackObjectFull[] = [];
+		let randomTracksArr: PlaylistTrackObject[] = [];
 		try {
 			this.setUserTokens();
 			const allTracksArr = await this.getAllTracksForGivenPlaylist(playlist);
@@ -316,22 +327,18 @@ export default class Playlists extends Base {
 				);
 				return;
 			} else {
-				let deletionSize = playlistLength - size;
+				const deletionSize = playlistLength - size;
 				if (deletionSize > 0) {
-					deletionSize =
-						deletionSize >= C.PLAYLIST_USAGE_MAX_LIMIT
-							? C.PLAYLIST_USAGE_MAX_LIMIT
-							: deletionSize;
-
-					const randomSongsForDeletion: SpotifyApi.TrackObjectFull[] =
-						Helpers.getRandomItemsFromArray(allTracksArr, deletionSize);
+					const songsSelectedForDeletion: PlaylistTrackObject[] =
+						allTracksArr.slice(0, deletionSize);
+					// Helpers.getRandomItemsFromArray(allTracksArr, deletionSize);
 					logger.info(
 						`${this.constructor.name} > maintainPlaylistsAtSize() > Playlist: ${playlist.name} > Playlist size(${playlistLength}) is more than Max Size(${size}) - Deleting in Total ${deletionSize} songs `
 					);
 
 					// max length  for one time usage = 100
 					const toBeDeletedTracksChunksArr = Helpers.groupsOfN(
-						randomSongsForDeletion,
+						songsSelectedForDeletion,
 						C.PLAYLIST_USAGE_MAX_LIMIT
 					);
 
@@ -347,13 +354,13 @@ export default class Playlists extends Base {
 							}) is more than Max Size(${size}) - Deleted ${
 								tobeDeletedTracks.length
 							} songs In Batch -> ${tobeDeletedTracks
-								.map(track => track.name)
+								.map(playlistTrack => playlistTrack.track.name)
 								.join(" , ")}.\n`
 						);
 						await this.deleteSongsFromPlaylist(
 							playlist,
-							tobeDeletedTracks.map(track => {
-								return { uri: track.uri };
+							tobeDeletedTracks.map(playlistTrack => {
+								return { uri: playlistTrack.track.uri };
 							})
 						);
 						deletedTracksCount += tobeDeletedTracks.length;
@@ -774,21 +781,25 @@ export default class Playlists extends Base {
 				1
 			).map(i => {
 				return {
-					name: i.name,
-					id: i.id,
-					uri: i.uri,
-					album: i.album.name,
-					primaryArtist: i.artists[0].name,
+					name: i.track.name,
+					id: i.track.id,
+					uri: i.track.uri,
+					album: i.track.name,
+					primaryArtist: i.track.artists[0].name,
 				};
 			})[0];
 			const targetGenres = await this.getFrequentArtistGenres(
-				tracks.map(track => track.artists[0])
+				tracks.map(playlistTrack => playlistTrack.track.artists[0])
 			);
 
 			// Get Track Features of each track
 			const analyzedTracks = await this.getAudioFeaturesForMultipleTracks(
-				tracks.map(track => {
-					return { id: track.id, name: track.name, uri: track.uri };
+				tracks.map(playlistTrack => {
+					return {
+						id: playlistTrack.track.id,
+						name: playlistTrack.track.name,
+						uri: playlistTrack.track.uri,
+					};
 				})
 			);
 

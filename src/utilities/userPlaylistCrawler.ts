@@ -2,7 +2,7 @@ import * as Helpers from "../resources/helpers";
 import * as C from "../resources/constants";
 import * as commons from "./commonFunctions";
 import { Playlists } from "../core";
-import { PlaylistDetails } from "../types";
+import { PlaylistDetails, PlaylistTrackObject } from "../types";
 import logger from "../resources/logger";
 
 const GivenUsersPlaylistCrawler = async (userId: string) => {
@@ -97,7 +97,7 @@ const GivenUsersPlaylistCrawler = async (userId: string) => {
 			forcefulImageUpdate
 		);
 
-		const allRandomTracks: SpotifyApi.TrackObjectFull[] = [];
+		const allRandomTracks: PlaylistTrackObject[] = [];
 
 		await Promise.all(
 			sourcePlaylists.map(async playlist => {
@@ -114,7 +114,7 @@ const GivenUsersPlaylistCrawler = async (userId: string) => {
 			`userPlaylistCrawler() > Total Random Tracks picked From Recommending User: ${userDetails.display_name}'s playlist >> ${allRandomTracks.length} - Adding Them to ${newPlaylist.name}`
 		);
 		const targetTracks = allRandomTracks.map(i => {
-			return { uri: i.uri, name: i.name, id: i.id };
+			return { uri: i.track.uri, name: i.track.name, id: i.track.id };
 		});
 		await playlistUtil.updatePlaylistWithSongs(newPlaylist, targetTracks);
 		await playlistUtil.maintainPlaylistsAtSize(newPlaylist, 100);

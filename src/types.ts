@@ -55,3 +55,9 @@ export type AverageTrackFeaturesWithGenres = {
 	frequentGenres: string[];
 	randomTrack: TrackDetails;
 };
+
+export type PlaylistTrackObject = {
+	track: SpotifyApi.TrackObjectFull;
+	added_at: string;
+	added_by?: string;
+};
