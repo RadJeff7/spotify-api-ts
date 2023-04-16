@@ -8,6 +8,7 @@ import {
 	TrackFeatures,
 	AverageTrackFeaturesWithGenres,
 	PlaylistTrackObject,
+	FrequencyMapperObj,
 } from "../types";
 import * as Helpers from "../resources/helpers";
 import * as C from "../resources/constants";
@@ -706,27 +707,37 @@ export default class Playlists extends Base {
 		return completeTrackFeatures;
 	}
 
-	async getFrequentArtistGenres(
+	async getFrequentArtistAndGenres(
 		artists: SpotifyApi.ArtistObjectSimplified[],
 		count = 5
-	) {
-		let sortedGenres: string[] = [];
+	): Promise<FrequencyMapperObj> {
+		const completeSortedArtistAndGenres: {
+			sortedGenres: string[];
+			sortedArtists: string[];
+		} = {
+			sortedArtists: [],
+			sortedGenres: [],
+		};
+
 		// Fetch artists' details in bulk
 		try {
 			this.setUserTokens();
+			const artistNames: string[] = [];
 			const completeArtistsResponse: SpotifyApi.ArtistObjectFull[] = [];
 			const inputArtistsChunkArr = Helpers.groupsOfN(artists, 50);
 			for (const inputArtists of inputArtistsChunkArr) {
-				logger.info(
-					`${
-						this.constructor.name
-					} > getFrequentArtistGenres() > Current Artists Array: ${inputArtists
-						.map(i => i.name)
-						.join(", ")} - Fetching Genre Details`
-				);
 				const {
 					body: { artists },
 				} = await this._spUtil.getArtists(inputArtists.map(i => i.id));
+				const currentArtistsGroup = inputArtists.map(i => i.name);
+				artistNames.push(...currentArtistsGroup);
+				logger.info(
+					`${
+						this.constructor.name
+					} > getFrequentArtistGenres() > Current Artists Array: ${currentArtistsGroup.join(
+						", "
+					)} - Fetching Genre Details`
+				);
 				completeArtistsResponse.push(...artists);
 			}
 
@@ -746,17 +757,35 @@ export default class Playlists extends Base {
 				genreCounts.set(genre, count + 1);
 			});
 
+			// Create a frequency count of Artists using a Map
+			const artistNameCounts: Map<string, number> = new Map();
+			artistNames.forEach((artist: string) => {
+				const count: number = artistNameCounts.get(artist) || 0;
+				artistNameCounts.set(artist, count + 1);
+			});
+
 			// Sort genres by frequency in descending order
-			sortedGenres = Array.from(genreCounts.keys()).sort((a, b) => {
+			completeSortedArtistAndGenres.sortedGenres = Array.from(
+				genreCounts.keys()
+			).sort((a, b) => {
 				const countA: number = genreCounts.get(a) || 0;
 				const countB: number = genreCounts.get(b) || 0;
+				return countB - countA;
+			});
+
+			// Sort artists by frequency in descending order
+			completeSortedArtistAndGenres.sortedArtists = Array.from(
+				artistNameCounts.keys()
+			).sort((a, b) => {
+				const countA: number = artistNameCounts.get(a) || 0;
+				const countB: number = artistNameCounts.get(b) || 0;
 				return countB - countA;
 			});
 			logger.info(
 				`${
 					this.constructor.name
 				} > getFrequentArtistGenres() > Sorted By Frequency: ${JSON.stringify(
-					sortedGenres
+					completeSortedArtistAndGenres
 				)}`
 			);
 		} catch (err) {
@@ -766,7 +795,13 @@ export default class Playlists extends Base {
 		}
 
 		// Return the top most frequent genres
-		return sortedGenres.slice(0, count);
+		return {
+			sortedArtists: completeSortedArtistAndGenres.sortedArtists.slice(
+				0,
+				count
+			),
+			sortedGenres: completeSortedArtistAndGenres.sortedGenres.slice(0, count),
+		};
 	}
 
 	async getAvgAudioFeaturesBasedOnPlaylist(
@@ -776,10 +811,17 @@ export default class Playlists extends Base {
 			this.setUserTokens();
 			// Retrieve the list of tracks in the playlist and analyze their audio features and genres
 			const tracks = await this.getAllTracksForGivenPlaylist(playlist);
-			const randomTrack: TrackDetails = Helpers.getRandomItemsFromArray(
-				tracks,
-				1
-			).map(i => {
+
+			const { sortedGenres, sortedArtists } =
+				await this.getFrequentArtistAndGenres(
+					tracks.map(playlistTrack => playlistTrack.track.artists[0])
+				);
+
+			const randomTrack: TrackDetails = [
+				Helpers.shuffleArray(
+					tracks.filter(i => i.track.artists[0].name === sortedArtists[0])
+				)?.[0] ?? Helpers.getRandomItemsFromArray(tracks, 1)[0],
+			].map(i => {
 				return {
 					name: i.track.name,
 					id: i.track.id,
@@ -788,9 +830,6 @@ export default class Playlists extends Base {
 					primaryArtist: i.track.artists[0].name,
 				};
 			})[0];
-			const targetGenres = await this.getFrequentArtistGenres(
-				tracks.map(playlistTrack => playlistTrack.track.artists[0])
-			);
 
 			// Get Track Features of each track
 			const analyzedTracks = await this.getAudioFeaturesForMultipleTracks(
@@ -866,7 +905,7 @@ export default class Playlists extends Base {
 
 			const analyzedFeaturesObj: AverageTrackFeaturesWithGenres = {
 				avgAudioFeatures,
-				frequentGenres: targetGenres,
+				frequentGenres: sortedGenres,
 				randomTrack,
 			};
 

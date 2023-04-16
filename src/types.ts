@@ -61,3 +61,8 @@ export type PlaylistTrackObject = {
 	added_at: string;
 	added_by?: string;
 };
+
+export type FrequencyMapperObj = {
+	sortedGenres: string[];
+	sortedArtists: string[];
+};

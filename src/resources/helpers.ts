@@ -6,7 +6,7 @@ export const getRandomItemsFromArray = <T>(arr: T[], count: number): T[] => {
 
 	if (n > len) {
 		logger.info(
-			`shuffleArray() > Count of Items(${count}) is Greater than Length of Original Array(${len}) - Retrieving ${
+			`getRandomItemsFromArray() > Count of Items(${count}) is Greater than Length of Original Array(${len}) - Retrieving ${
 				len - 1
 			} Random items`
 		);
@@ -22,6 +22,15 @@ export const getRandomItemsFromArray = <T>(arr: T[], count: number): T[] => {
 		.sort((a, b) => a.sort - b.sort)
 		.map(({ value }) => value)
 		.slice(0, n);
+};
+
+export const shuffleArray = <T>(arr: T[]): T[] => {
+	return arr
+		.map(value => {
+			return { value, sort: Math.random() };
+		})
+		.sort((a, b) => a.sort - b.sort)
+		.map(({ value }) => value);
 };
 
 export const deleteAndCreateFolder = (path: string) => {
