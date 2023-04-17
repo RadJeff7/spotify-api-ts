@@ -1,9 +1,12 @@
+import dotenv from "dotenv";
 import assert from "assert";
 import Puppeteer, { Browser, ElementHandle, Page } from "puppeteer";
 import { PuppeteerScreenRecorder } from "puppeteer-screen-recorder";
 import * as Helpers from "../resources/helpers";
 import * as C from "../resources/constants";
 import logger from "../resources/logger";
+dotenv.config();
+const runOnHeadless = (process.env.RUN_ON_HEADLESS || "true") === "true";
 
 export default class BrowserClass {
 	private _browserUtil!: Browser;
@@ -13,10 +16,11 @@ export default class BrowserClass {
 	private _errorPage: Page | undefined;
 
 	protected async getBrowserObj() {
+		Helpers.deleteAndCreateFolder("./screenshots");
 		try {
 			if (!this._browserUtil) {
 				this._browserUtil = await Puppeteer.launch({
-					headless: true,
+					headless: runOnHeadless,
 					defaultViewport: null,
 					ignoreHTTPSErrors: true,
 					args: [
@@ -35,15 +39,14 @@ export default class BrowserClass {
 				`${this.constructor.name} > getBrowserObj() > Failure in opening Browser Instance: ${err}`
 			);
 		}
-		Helpers.deleteAndCreateFolder("./screenshots");
 	}
 
 	async openSpotifyLoginPage() {
 		if (!this._loginPage) {
+			if (!this._browserUtil) {
+				await this.getBrowserObj();
+			}
 			try {
-				if (!this._browserUtil) {
-					await this.getBrowserObj();
-				}
 				const page = await this._browserUtil.newPage();
 				await page.setViewport({ width: 1920, height: 1040 });
 				if (!this._screenRecorder) {
@@ -60,7 +63,7 @@ export default class BrowserClass {
 
 				assert.ok(
 					(await page.title()).includes(`Login`),
-					`${this.constructor.name} > openSpotifyLoginPage() > Spotify Page not found`
+					`Spotify Login Page unable to launch`
 				);
 				logger.info(
 					`${
@@ -69,7 +72,7 @@ export default class BrowserClass {
 				);
 				this._loginPage = page;
 			} catch (err) {
-				this._errorPage = this._loginPage ? this._loginPage : undefined;
+				this._errorPage = this._loginPage ?? undefined;
 				await this.handleErrors(
 					`${this.constructor.name} > openSpotifyLoginPage() > Failure in Opening Spotify Login Page`
 				);
@@ -83,86 +86,77 @@ export default class BrowserClass {
 				`${this.constructor.name} > handleSpotifyLogin() > Spotify User Creds are not filled - Skipping Browser Automation Flow`
 			);
 		}
-		try {
-			if (!this._loginPage) {
-				await this.openSpotifyLoginPage();
-			}
-			let retries = 0,
-				errorStr = "";
-			while (retries < retryCount) {
-				try {
-					const usernameField = await this._loginPage.$(`#login-username`);
-					assert.ok(usernameField, "UserName Field could not be Found");
-					await usernameField.click({ clickCount: 3 });
-					await this._loginPage.keyboard.press("Backspace");
-					await usernameField.type(C.Spotify_User_Creds.email);
+		if (!this._loginPage) {
+			await this.openSpotifyLoginPage();
+		}
+		let retries = 0,
+			errorStr = "";
+		while (retries < retryCount) {
+			try {
+				const usernameField = await this._loginPage.$(`#login-username`);
+				assert.ok(usernameField, "UserName Field could not be Found");
+				await usernameField.click({ clickCount: 3 });
+				await this._loginPage.keyboard.press("Backspace");
+				await usernameField.type(C.Spotify_User_Creds.email);
 
-					const passwordField = await this._loginPage.$(`#login-password`);
-					assert.ok(passwordField, "Password Field could not be Found");
-					await passwordField.click({ clickCount: 3 });
-					await this._loginPage.keyboard.press("Backspace");
-					await passwordField.type(C.Spotify_User_Creds.password);
+				const passwordField = await this._loginPage.$(`#login-password`);
+				assert.ok(passwordField, "Password Field could not be Found");
+				await passwordField.click({ clickCount: 3 });
+				await this._loginPage.keyboard.press("Backspace");
+				await passwordField.type(C.Spotify_User_Creds.password);
+				logger.info(
+					`${
+						this.constructor.name
+					} > handleSpotifyLogin() > Current Page: ${await this._loginPage.title()} - Login Details Filled`
+				);
+				const viewPassword = (
+					await this._loginPage.$x(
+						"//button[contains(@aria-label, 'show password')]"
+					)
+				)[0];
+				assert.ok(viewPassword, "View Password Could not be found");
+				await (viewPassword as ElementHandle<Element>).click();
+				const loginBtn = (
+					await this._loginPage.$x("//*[text()='Log In']")
+				)?.[0];
+				assert.ok(loginBtn, "Log In Button Could not be found");
+				await (loginBtn as ElementHandle<Element>).click();
+				await this._loginPage.waitForNavigation({
+					waitUntil: "domcontentloaded",
+				});
+				if ((await this._loginPage.title()).includes(`Authorize`)) {
 					logger.info(
 						`${
 							this.constructor.name
-						} > handleSpotifyLogin() > Current Page: ${await this._loginPage.title()} - Login Details Filled`
+						} > handleSpotifyLogin() > Current Page: ${await this._loginPage.title()} - Authorized`
 					);
-					const viewPassword = (
-						await this._loginPage.$x(
-							"//button[contains(@aria-label, 'show password')]"
-						)
-					)[0];
-					assert.ok(viewPassword, "View Password Could not be found");
-					await (viewPassword as ElementHandle<Element>).click();
-					const loginBtn = (
-						await this._loginPage.$x("//*[text()='Log In']")
-					)?.[0];
-					assert.ok(loginBtn, "Log In Button Could not be found");
-					await (loginBtn as ElementHandle<Element>).click();
-					await this._loginPage.waitForNavigation({
-						waitUntil: "domcontentloaded",
-					});
-					if ((await this._loginPage.title()).includes(`Authorize`)) {
-						logger.info(
-							`${
-								this.constructor.name
-							} > handleSpotifyLogin() > Current Page: ${await this._loginPage.title()} - Authorized`
-						);
-						this._authPage = this._loginPage;
-						break;
-					}
-				} catch (e) {
-					errorStr = `${
-						this.constructor.name
-					} > handleSpotifyLogin() > Retry Count: ${
-						retries + 1
-					} - Error in Login: ${e}`;
-					logger.error(errorStr);
+					this._authPage = this._loginPage;
+					break;
 				}
-				// If authorization failed, wait for a while before retrying
-				await Helpers.sleep(3000);
-				retries++;
+			} catch (e) {
+				errorStr = `${
+					this.constructor.name
+				} > handleSpotifyLogin() > Retry Count: ${
+					retries + 1
+				} - Error in Login: ${e}`;
+				logger.error(errorStr);
 			}
+			// If authorization failed, wait for a while before retrying
+			await Helpers.sleep(3000);
+			retries++;
+		}
 
-			if (retries >= retryCount && !this._authPage) {
-				this._errorPage = this._loginPage ? this._loginPage : undefined;
-				await this.handleErrors(
-					`${this.constructor.name} > handleSpotifyLogin() > Failure in handling Spotify Login Page: ${errorStr}`
-				);
-			}
-		} catch (err) {
-			this._errorPage = this._loginPage ? this._loginPage : undefined;
-			await this.handleErrors(
-				`${this.constructor.name} > handleSpotifyLogin() > Failure in handling Spotify Login Page: ${err}`
-			);
+		if (retries >= retryCount && !this._authPage) {
+			this._errorPage = this._loginPage ?? undefined;
+			await this.handleErrors(`${errorStr}`);
 		}
 	}
 
 	async handleSpotifyAuthorization() {
+		if (!this._authPage) {
+			await this.handleSpotifyLogin();
+		}
 		try {
-			if (!this._authPage) {
-				await this.handleSpotifyLogin();
-			}
 			assert.ok(
 				(await this._authPage.title()).includes(`Authorize`),
 				"Authorization Page Not Loaded"
@@ -186,18 +180,14 @@ export default class BrowserClass {
 				`${this.constructor.name} > handleSpotifyAuthorization() > Current Page Content: ${bodyHTML}`
 			);
 		} catch (err) {
-			this._errorPage = this._authPage
-				? this._authPage
-				: this._loginPage
-				? this._loginPage
-				: undefined;
+			this._errorPage = this._authPage ?? this._loginPage ?? undefined;
 			await this.handleErrors(
 				`${this.constructor.name} > handleSpotifyAuthorization() > Failure in handling Spotify Auth Page: ${err}`
 			);
 		}
 	}
 
-	async closeBrowserInstance() {
+	async closeBrowserInstance(errorStr?: string) {
 		logger.info(
 			`${this.constructor.name} > closeBrowserInstance() > Trying to stop screen-recorder and browser instance`
 		);
@@ -209,6 +199,7 @@ export default class BrowserClass {
 				} > closeBrowserInstance() > Screen Recorder Status: ${status} - Duration: ${this._screenRecorder.getRecordDuration()}`
 			);
 		}
+		if (errorStr) logger.error(errorStr, " - Closing the browser instance");
 
 		if (this._browserUtil) {
 			logger.info(
@@ -219,9 +210,6 @@ export default class BrowserClass {
 	}
 
 	async handleErrors(errorMessage: string) {
-		const errStr = `${this.constructor.name} > handleErrors() > ${errorMessage}`;
-		logger.error(errStr);
-
 		try {
 			if (this._errorPage) {
 				await this._errorPage.screenshot({
@@ -234,8 +222,7 @@ export default class BrowserClass {
 				`${this.constructor.name} > handleErrors() > unable to take Error screen shot`
 			);
 		}
-		await this.closeBrowserInstance();
-
-		throw new Error(errStr);
+		await this.closeBrowserInstance(errorMessage);
+		throw new Error(errorMessage);
 	}
 }
