@@ -25,6 +25,7 @@ jobs:
       - name: Create .env with Github Secrets and run script
         uses: iamsauravsharma/create-dotenv@v1.2.2
         env:
+          LOG_TO_CONSOLE: true
           SPOTIFY_API_CLIENT_SECRET: ${{ secrets.SPOTIFY_API_CLIENT_SECRET }}
           SPOTIFY_USER_PASS: ${{ secrets.SPOTIFY_USER_PASS }}
           SPOTIFY_USER_EMAIL: ${{ vars.SPOTIFY_USER_EMAIL}}

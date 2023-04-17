@@ -16,7 +16,7 @@ export default class BrowserClass {
 		try {
 			if (!this._browserUtil) {
 				this._browserUtil = await Puppeteer.launch({
-					headless: false,
+					headless: true,
 					defaultViewport: null,
 					ignoreHTTPSErrors: true,
 					args: [
