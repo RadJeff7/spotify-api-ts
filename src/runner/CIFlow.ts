@@ -1,7 +1,6 @@
 import { PuppeteerBrowser, Server } from "../core";
 import { runAllSpotifyUtils } from "./runnerUtilities";
-
-const sleep = (ms = 5000) => new Promise(r => setTimeout(r, ms));
+import { sleep } from "../resources/helpers";
 const actionsStatus: { [key: string]: boolean } = {
 	server: false,
 	auth: false,

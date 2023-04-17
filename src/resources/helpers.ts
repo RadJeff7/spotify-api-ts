@@ -47,3 +47,5 @@ export const groupsOfN = <T>(arr: T[], n: number): T[][] => {
 	}
 	return resultArr;
 };
+
+export const sleep = (ms = 5000) => new Promise(r => setTimeout(r, ms));

@@ -1,7 +1,6 @@
 import { PuppeteerBrowser, Server } from "../core";
 import * as C from "../resources/constants";
-const sleep = (ms = 5000) => new Promise(r => setTimeout(r, ms));
-
+import { sleep } from "../resources/helpers";
 const main = async () => {
 	let tokenFlowCompleted = false;
 	const server = new Server();

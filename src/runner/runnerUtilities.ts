@@ -7,7 +7,7 @@ import {
 	createRecommendationPlaylist,
 	makeSimilarPlaylistFromPlaylist,
 } from "../utilities";
-const sleep = (ms = 5000) => new Promise(r => setTimeout(r, ms));
+import { sleep } from "../resources/helpers";
 
 export const runAllSpotifyUtils = async () => {
 	if (utilSelected.match(/random|all/i)) {

@@ -16,7 +16,7 @@ export default class BrowserClass {
 		try {
 			if (!this._browserUtil) {
 				this._browserUtil = await Puppeteer.launch({
-					headless: true,
+					headless: false,
 					defaultViewport: null,
 					ignoreHTTPSErrors: true,
 					args: [
@@ -77,7 +77,7 @@ export default class BrowserClass {
 		}
 	}
 
-	async handleSpotifyLogin() {
+	async handleSpotifyLogin(retryCount = 3) {
 		if (!(C.Spotify_User_Creds.email && C.Spotify_User_Creds.password)) {
 			await this.handleErrors(
 				`${this.constructor.name} > handleSpotifyLogin() > Spotify User Creds are not filled - Skipping Browser Automation Flow`
@@ -87,32 +87,69 @@ export default class BrowserClass {
 			if (!this._loginPage) {
 				await this.openSpotifyLoginPage();
 			}
-			const usernameField = await this._loginPage.$(`#login-username`);
-			assert.ok(usernameField, "UserName Field could not be Found");
-			await usernameField.type(C.Spotify_User_Creds.email);
+			let retries = 0,
+				errorStr = "";
+			while (retries < retryCount) {
+				try {
+					const usernameField = await this._loginPage.$(`#login-username`);
+					assert.ok(usernameField, "UserName Field could not be Found");
+					await usernameField.click({ clickCount: 3 });
+					await this._loginPage.keyboard.press("Backspace");
+					await usernameField.type(C.Spotify_User_Creds.email);
 
-			const passwordField = await this._loginPage.$(`#login-password`);
-			assert.ok(passwordField, "Password Field could not be Found");
-			await passwordField.type(C.Spotify_User_Creds.password);
-			logger.info(
-				`${
-					this.constructor.name
-				} > handleSpotifyLogin() > Current Page: ${await this._loginPage.title()} - Login Details Filled`
-			);
-			const viewPassword = (
-				await this._loginPage.$x(
-					"//button[contains(@aria-label, 'show password')]"
-				)
-			)[0];
-			assert.ok(viewPassword, "View Password Could not be found");
-			await (viewPassword as ElementHandle<Element>).click();
-			const loginBtn = (await this._loginPage.$x("//*[text()='Log In']"))?.[0];
-			assert.ok(loginBtn, "Log In Button Could not be found");
-			await (loginBtn as ElementHandle<Element>).click();
-			await this._loginPage.waitForNavigation({
-				waitUntil: "domcontentloaded",
-			});
-			this._authPage = this._loginPage;
+					const passwordField = await this._loginPage.$(`#login-password`);
+					assert.ok(passwordField, "Password Field could not be Found");
+					await passwordField.click({ clickCount: 3 });
+					await this._loginPage.keyboard.press("Backspace");
+					await passwordField.type(C.Spotify_User_Creds.password);
+					logger.info(
+						`${
+							this.constructor.name
+						} > handleSpotifyLogin() > Current Page: ${await this._loginPage.title()} - Login Details Filled`
+					);
+					const viewPassword = (
+						await this._loginPage.$x(
+							"//button[contains(@aria-label, 'show password')]"
+						)
+					)[0];
+					assert.ok(viewPassword, "View Password Could not be found");
+					await (viewPassword as ElementHandle<Element>).click();
+					const loginBtn = (
+						await this._loginPage.$x("//*[text()='Log In']")
+					)?.[0];
+					assert.ok(loginBtn, "Log In Button Could not be found");
+					await (loginBtn as ElementHandle<Element>).click();
+					await this._loginPage.waitForNavigation({
+						waitUntil: "domcontentloaded",
+					});
+					if ((await this._loginPage.title()).includes(`Authorize`)) {
+						logger.info(
+							`${
+								this.constructor.name
+							} > handleSpotifyLogin() > Current Page: ${await this._loginPage.title()} - Authorized`
+						);
+						this._authPage = this._loginPage;
+						break;
+					}
+				} catch (e) {
+					errorStr = `${
+						this.constructor.name
+					} > handleSpotifyLogin() > Retry Count: ${
+						retries + 1
+					} - Error in Login: ${e}`;
+					logger.error(errorStr);
+				}
+				// If authorization failed, wait for a while before retrying
+				await Helpers.sleep(3000);
+				retries++;
+			}
+
+			if (retries >= retryCount && !this._authPage) {
+				this._errorPage = this._loginPage ? this._loginPage : undefined;
+				await this.handleErrors(
+					`${this.constructor.name} > handleSpotifyLogin() > Failure in handling Spotify Login Page: ${errorStr}`
+				);
+			}
 		} catch (err) {
 			this._errorPage = this._loginPage ? this._loginPage : undefined;
 			await this.handleErrors(
