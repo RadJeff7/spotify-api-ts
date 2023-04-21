@@ -92,12 +92,12 @@ const makeSimilarPlaylistFromPlaylist = async (inpuPlaylistId?: string) => {
 		newPlaylist
 	);
 
-	const { avgAudioFeatures, frequentGenres, randomTrack } =
+	const { avgAudioFeatures, frequentGenres, randomTracks } =
 		await playlistUtil.getAvgAudioFeaturesBasedOnPlaylist(playlist);
 
 	const recommendedTracks = await playlistUtil.getRecommendedTracks({
 		count: 50,
-		seed_tracks_array: [randomTrack],
+		seed_tracks_array: randomTracks,
 		seed_genres_array: frequentGenres,
 		audioFeatures: avgAudioFeatures,
 	});

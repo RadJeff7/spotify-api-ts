@@ -1,15 +1,14 @@
 import { Playlists } from "../core";
-import * as Helpers from "../resources/helpers";
 import * as commons from "./commonFunctions";
 import * as C from "../resources/constants";
 import { PlaylistDetails } from "../types";
 import logger from "../resources/logger";
 
-const makeRecommendationPlaylistsFromUser = async () => {
+const recommedTracksBasedOnLastPlayedTracksofUser = async () => {
 	const playlistUtil = new Playlists();
 	const playlists = await playlistUtil.getAllUserPlaylists();
 	logger.info(
-		`makeRecommendationPlaylists() > Total User Playlists >> ${playlists.length}`
+		`recommedTracksBasedOnLastPlayedTracksofUser() > Total User Playlists >> ${playlists.length}`
 	);
 
 	let newPlaylist: PlaylistDetails;
@@ -18,7 +17,7 @@ const makeRecommendationPlaylistsFromUser = async () => {
 	);
 	if (!archivePlaylistExists) {
 		logger.info(
-			`makeRecommendationPlaylists() > ${C.RecommendationsPlaylistFromSpotify.name} needs to be created`
+			`recommedTracksBasedOnLastPlayedTracksofUser() > ${C.RecommendationsPlaylistFromSpotify.name} needs to be created`
 		);
 		newPlaylist = await playlistUtil.createNewPlaylist(
 			C.RecommendationsPlaylistFromSpotify.name,
@@ -26,7 +25,7 @@ const makeRecommendationPlaylistsFromUser = async () => {
 		);
 	} else {
 		logger.info(
-			`makeRecommendationPlaylists() > ${C.RecommendationsPlaylistFromSpotify.name} already exists`
+			`recommedTracksBasedOnLastPlayedTracksofUser() > ${C.RecommendationsPlaylistFromSpotify.name} already exists`
 		);
 		newPlaylist = {
 			id: archivePlaylistExists.id,
@@ -45,34 +44,20 @@ const makeRecommendationPlaylistsFromUser = async () => {
 			newPlaylist
 		);
 		const lastPlayedTracks = await playlistUtil.getLastPlayedTracks();
-		const genres = await playlistUtil.getGenreRecommendations();
-		const selectedGenres = Helpers.getRandomItemsFromArray(genres, 2);
-		const selectedTracks = Helpers.getRandomItemsFromArray(lastPlayedTracks, 3);
-		logger.info(
-			`makeRecommendationPlaylists() > Selected Tracks for Seeding => ${selectedTracks
-				.map(i => i.name)
-				.join(" \n")}`
-		);
-		logger.info(
-			`makeRecommendationPlaylists() Selected Genres for Seeding => ${selectedGenres.join(
-				" \n"
-			)}`
-		);
+		const { avgAudioFeatures, frequentGenres, randomTracks } =
+			await playlistUtil.getAvgAudioFeaturesBasedOnTracks(lastPlayedTracks);
 
 		const recommendedTracks = await playlistUtil.getRecommendedTracks({
-			seed_tracks_array: selectedTracks,
-			seed_genres_array: selectedGenres,
+			count: 50,
+			seed_tracks_array: randomTracks,
+			seed_genres_array: frequentGenres,
+			audioFeatures: avgAudioFeatures,
 		});
 
-		const allRandomRecommendedTracks = Helpers.getRandomItemsFromArray(
-			recommendedTracks,
-			60
-		);
-
 		logger.info(
-			`makeRecommendationPlaylists() > Total Random Tracks picked From Recommendations >> ${allRandomRecommendedTracks.length} - Adding Them to ${newPlaylist.name}`
+			`recommedTracksBasedOnLastPlayedTracksofUser() > Total Tracks picked From Recommendations From Last Played Tracks >> ${recommendedTracks.length} - Adding Them to ${newPlaylist.name}`
 		);
-		const targetTracks = allRandomRecommendedTracks.map(i => {
+		const targetTracks = recommendedTracks.map(i => {
 			return { uri: i.uri, name: i.name, id: i.id };
 		});
 		await playlistUtil.updatePlaylistWithSongs(newPlaylist, targetTracks);
@@ -80,4 +65,4 @@ const makeRecommendationPlaylistsFromUser = async () => {
 	}
 };
 
-export { makeRecommendationPlaylistsFromUser as default };
+export { recommedTracksBasedOnLastPlayedTracksofUser as default };

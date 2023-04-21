@@ -9,6 +9,7 @@ import {
 	AverageTrackFeaturesWithGenres,
 	PlaylistTrackObject,
 	FrequencyMapperObj,
+	SimpleArtistDetails,
 } from "../types";
 import * as Helpers from "../resources/helpers";
 import * as C from "../resources/constants";
@@ -454,10 +455,18 @@ export default class Playlists extends Base {
 						name: history.track.name.replace(/"/g, ""),
 						uri: history.track.uri,
 						id: history.track.id,
-						primaryArtist: history.track.artists[0].name,
+						primaryArtist: {
+							name: history.track.artists[0].name,
+							id: history.track.artists[0].id,
+						},
 						featuringArtists:
 							history.track.artists.length > 1
-								? history.track.artists.slice(1).map(i => i.name)
+								? history.track.artists.slice(1).map(i => {
+										return {
+											name: i.name,
+											id: i.id,
+										};
+								  })
 								: undefined,
 						album: history.track.album.name.replace(/"/g, ""),
 						duration: moment.utc(history.track.duration_ms).format("mm:ss"),
@@ -468,7 +477,15 @@ export default class Playlists extends Base {
 					};
 				});
 			logger.info(
-				`${this.constructor.name} > getLastPlayedTracks() > Last Played Tracks >> ${consolidatedTrackDetailsArr.length}`
+				`${
+					this.constructor.name
+				} > getLastPlayedTracks() > Last Played Tracks >> ${
+					consolidatedTrackDetailsArr.length
+				} - Tracks are : ${consolidatedTrackDetailsArr
+					.map(i => {
+						return `${i.name} - By ${i.primaryArtist.name}`;
+					})
+					.join(" , ")}`
 			);
 			return consolidatedTrackDetailsArr;
 		} catch (err) {
@@ -521,7 +538,7 @@ export default class Playlists extends Base {
 					? Helpers.getRandomItemsFromArray(config.seed_artist_array, 1)
 					: config.seed_artist_array;
 			const requestConfig: SpotifyApi.RecommendationsOptionsObject = {
-				limit: config.count ?? 50, //max can be set to 100
+				limit: config.count ?? C.PLAYLIST_USAGE_MAX_LIMIT, //max can be set to 100
 				seed_tracks: seedTracksURI,
 				seed_genres: inputGenres,
 				seed_artists: inputArtists,
@@ -550,10 +567,18 @@ export default class Playlists extends Base {
 						name: track.name.replace(/"/g, ""),
 						uri: track.uri,
 						id: track.id,
-						primaryArtist: track.artists[0].name,
+						primaryArtist: {
+							name: track.artists[0].name,
+							id: track.artists[0].id,
+						},
 						featuringArtists:
 							track.artists.length > 1
-								? track.artists.slice(1).map(i => i.name)
+								? track.artists.slice(1).map(i => {
+										return {
+											name: i.name,
+											id: i.id,
+										};
+								  })
 								: undefined,
 						album: track.album.name.replace(/"/g, ""),
 						duration: moment.utc(track.duration_ms).format("mm:ss"),
@@ -569,7 +594,7 @@ export default class Playlists extends Base {
 					recommendedTracks.length
 				} >> Songs are: ${recommendedTracks
 					.map(i => {
-						return `${i.name} - By ${i.primaryArtist}`;
+						return `${i.name} - By ${i.primaryArtist.name}`;
 					})
 					.join(" , ")}`
 			);
@@ -669,7 +694,7 @@ export default class Playlists extends Base {
 						inputTracks.map(track => track.id)
 					);
 				// Iterate the AudioFeatures Array to parse the required details
-				audioFeatures.audio_features.map(audiofeatureObj => {
+				audioFeatures.audio_features.forEach(audiofeatureObj => {
 					const trackFeatureObj: TrackFeatures = {
 						trackId: audiofeatureObj.id,
 						trackName:
@@ -708,7 +733,7 @@ export default class Playlists extends Base {
 	}
 
 	async getFrequentArtistAndGenres(
-		artists: SpotifyApi.ArtistObjectSimplified[],
+		artists: SpotifyApi.ArtistObjectSimplified[] | SimpleArtistDetails[],
 		count = 5
 	): Promise<FrequencyMapperObj> {
 		const completeSortedArtistAndGenres: {
@@ -817,19 +842,24 @@ export default class Playlists extends Base {
 					tracks.map(playlistTrack => playlistTrack.track.artists[0])
 				);
 
-			const randomTrack: TrackDetails = [
-				Helpers.shuffleArray(
+			//Random Tracks are selected based on first song by freqeuent artists and then randomly selected two more
+			const randomTracks: TrackDetails[] = [
+				...Helpers.shuffleArray(
 					tracks.filter(i => i.track.artists[0].name === sortedArtists[0])
-				)?.[0] ?? Helpers.getRandomItemsFromArray(tracks, 1)[0],
+				).slice(0, 2),
+				...Helpers.getRandomItemsFromArray(tracks, 2),
 			].map(i => {
 				return {
 					name: i.track.name,
 					id: i.track.id,
 					uri: i.track.uri,
 					album: i.track.name,
-					primaryArtist: i.track.artists[0].name,
+					primaryArtist: {
+						name: i.track.artists[0].name,
+						id: i.track.artists[0].id,
+					},
 				};
-			})[0];
+			});
 
 			// Get Track Features of each track
 			const analyzedTracks = await this.getAudioFeaturesForMultipleTracks(
@@ -906,7 +936,7 @@ export default class Playlists extends Base {
 			const analyzedFeaturesObj: AverageTrackFeaturesWithGenres = {
 				avgAudioFeatures,
 				frequentGenres: sortedGenres,
-				randomTrack,
+				randomTracks,
 			};
 
 			logger.info(
@@ -921,6 +951,117 @@ export default class Playlists extends Base {
 		} catch (err) {
 			throw new Error(
 				`${this.constructor.name} > getAvgAudioFeaturesBasedOnPlaylist() > Error: ${err}`
+			);
+		}
+	}
+
+	async getAvgAudioFeaturesBasedOnTracks(
+		tracks: TrackDetails[] | RecentlyPlayedTrackDetails[]
+	): Promise<AverageTrackFeaturesWithGenres> {
+		try {
+			this.setUserTokens();
+			const { sortedGenres, sortedArtists } =
+				await this.getFrequentArtistAndGenres(
+					tracks.map(track => track.primaryArtist)
+				);
+			//Random Tracks are selected based on first song by freqeuent artists and then randomly selected two more
+			const randomTracks: TrackDetails[] = [
+				...Helpers.shuffleArray(
+					tracks.filter(i => i.primaryArtist.name === sortedArtists[0])
+				).slice(0, 2),
+				...Helpers.getRandomItemsFromArray(tracks, 3),
+			];
+
+			// Get Track Features of each track
+			const analyzedTracks = await this.getAudioFeaturesForMultipleTracks(
+				tracks.map(track => {
+					return {
+						id: track.id,
+						name: track.name,
+						uri: track.uri,
+					};
+				})
+			);
+
+			logger.info(
+				`${this.constructor.name} > getAvgAudioFeaturesBasedOnTracks() > Total Analyzed Songs: ${analyzedTracks.length}`
+			);
+
+			// Calculate the average audio features of the tracks in the playlist
+			const avgAudioFeatures: TrackFeatures["audioFeatures"] =
+				analyzedTracks.reduce(
+					(sum, trackFeatureObj) => ({
+						acousticness:
+							sum.acousticness + trackFeatureObj.audioFeatures.acousticness,
+						danceability:
+							sum.danceability + trackFeatureObj.audioFeatures.danceability,
+						energy: sum.energy + trackFeatureObj.audioFeatures.energy,
+						instrumentalness:
+							sum.instrumentalness +
+							trackFeatureObj.audioFeatures.instrumentalness,
+						liveness: sum.liveness + trackFeatureObj.audioFeatures.liveness,
+						speechiness:
+							sum.speechiness + trackFeatureObj.audioFeatures.speechiness,
+						valence: sum.valence + trackFeatureObj.audioFeatures.valence,
+						duration_ms:
+							sum.duration_ms + trackFeatureObj.audioFeatures.duration_ms,
+					}),
+					{
+						acousticness: 0,
+						danceability: 0,
+						energy: 0,
+						instrumentalness: 0,
+						liveness: 0,
+						speechiness: 0,
+						valence: 0,
+						duration_ms: 0,
+					}
+				);
+
+			avgAudioFeatures.acousticness /= analyzedTracks.length;
+			avgAudioFeatures.danceability /= analyzedTracks.length;
+			avgAudioFeatures.energy /= analyzedTracks.length;
+			avgAudioFeatures.instrumentalness /= analyzedTracks.length;
+			avgAudioFeatures.liveness /= analyzedTracks.length;
+			avgAudioFeatures.speechiness /= analyzedTracks.length;
+			avgAudioFeatures.valence /= analyzedTracks.length;
+			avgAudioFeatures.duration_ms /= analyzedTracks.length;
+
+			// Round the values of the audio features to 3 decimal places
+			Object.keys(avgAudioFeatures).forEach(key => {
+				avgAudioFeatures[key as keyof TrackFeatures["audioFeatures"]] = Number(
+					avgAudioFeatures[key as keyof TrackFeatures["audioFeatures"]].toFixed(
+						3
+					)
+				);
+			});
+
+			logger.info(
+				`${
+					this.constructor.name
+				} > getAvgAudioFeaturesBasedOnTracks() > Average Audio Features of ${
+					tracks.length
+				} Songs: ${JSON.stringify(avgAudioFeatures)}`
+			);
+
+			const analyzedFeaturesObj: AverageTrackFeaturesWithGenres = {
+				avgAudioFeatures,
+				frequentGenres: sortedGenres,
+				randomTracks,
+			};
+
+			logger.info(
+				`${
+					this.constructor.name
+				} > getAvgAudioFeaturesBasedOnTracks() > Audio Features of ${
+					tracks.length
+				} Songs: ${JSON.stringify(analyzedFeaturesObj)}`
+			);
+
+			return analyzedFeaturesObj;
+		} catch (err) {
+			throw new Error(
+				`${this.constructor.name} > getAvgAudioFeaturesBasedOnTracks() > Error: ${err}`
 			);
 		}
 	}

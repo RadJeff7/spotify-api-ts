@@ -52,7 +52,7 @@ export const RandomArchivePlaylist = {
 export const RecommendationsPlaylistFromSpotify = {
 	name: "Spotify Recommendations Mix",
 	description:
-		"Random Songs from Spotify Recommendations - created by spotify api 🎶 - Maintained at 100 Songs",
+		"Spotify Recommendations based on Recently Played Tracks - created by spotify api 🎶 - Maintained at 80 Songs",
 };
 
 export const RecommendationsPlaylistFromUser = {

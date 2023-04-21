@@ -4,7 +4,7 @@ const utilSelected = process.env.UTIL_NAME || "all"; //use 'random' = randomPlay
 import {
 	makeRandomPlaylistsFromDailyMix,
 	createWeeklyArchiveFromDiscoverWeekly,
-	createRecommendationPlaylist,
+	createSimilarPlaylistFromLastPlayed,
 	makeSimilarPlaylistFromPlaylist,
 } from "../utilities";
 import { sleep } from "../resources/helpers";
@@ -40,7 +40,7 @@ export const runAllSpotifyUtils = async () => {
 		console.log(
 			`****** Started Running Function to create Recommedation Playlist ******  \n\n`
 		);
-		await createRecommendationPlaylist();
+		await createSimilarPlaylistFromLastPlayed();
 
 		console.log(
 			`****** Completed Function to create create Recommedation Playlist ******  \n\n`

@@ -20,13 +20,18 @@ export interface TrackDetails {
 	name: string;
 	uri: string;
 	id: string;
-	primaryArtist: string;
-	featuringArtists?: string[];
+	primaryArtist: SimpleArtistDetails;
+	featuringArtists?: SimpleArtistDetails[];
 	album: string;
 	genres?: string;
 	duration?: string;
 	released?: string;
 }
+
+export type SimpleArtistDetails = Pick<
+	SpotifyApi.ArtistObjectSimplified,
+	"id" | "name"
+>;
 
 export type SimpleTrackDetails = Pick<TrackDetails, "id" | "uri" | "name">;
 
@@ -53,7 +58,7 @@ export type TrackFeatures = {
 export type AverageTrackFeaturesWithGenres = {
 	avgAudioFeatures: TrackFeatures["audioFeatures"];
 	frequentGenres: string[];
-	randomTrack: TrackDetails;
+	randomTracks: TrackDetails[];
 };
 
 export type PlaylistTrackObject = {
@@ -65,4 +70,8 @@ export type PlaylistTrackObject = {
 export type FrequencyMapperObj = {
 	sortedGenres: string[];
 	sortedArtists: string[];
+};
+
+export type OptionalToNullable<T> = {
+	[K in keyof T]-?: undefined extends T[K] ? NonNullable<T[K]> | null : T[K];
 };
