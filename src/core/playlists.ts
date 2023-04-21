@@ -901,12 +901,12 @@ export default class Playlists extends Base {
 					tracks.map(playlistTrack => playlistTrack.track.artists[0])
 				);
 
-			//Random Tracks are selected based on first song by freqeuent artists and then randomly selected two more
+			//Random Tracks are selected based on first song by freqeuent artists and then randomly selected one more
 			const randomTracks: TrackDetails[] = [
 				...Helpers.shuffleArray(
 					tracks.filter(i => i.track.artists[0].name === sortedArtists[0])
 				).slice(0, 2),
-				...Helpers.getRandomItemsFromArray(tracks, 2),
+				...Helpers.getRandomItemsFromArray(tracks, 1),
 			].map(i => {
 				return {
 					name: i.track.name,
@@ -970,12 +970,12 @@ export default class Playlists extends Base {
 				await this.getFrequentArtistAndGenres(
 					tracks.map(track => track.primaryArtist)
 				);
-			//Random Tracks are selected based on first song by freqeuent artists and then randomly selected two more
+			//Random Tracks are selected based on first song by freqeuent artists and then randomly selected one more
 			const randomTracks: TrackDetails[] = [
 				...Helpers.shuffleArray(
 					tracks.filter(i => i.primaryArtist.name === sortedArtists[0])
 				).slice(0, 2),
-				...Helpers.getRandomItemsFromArray(tracks, 3),
+				...Helpers.getRandomItemsFromArray(tracks, 1),
 			];
 
 			// Get Track Features of each track
