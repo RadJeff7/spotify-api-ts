@@ -333,7 +333,6 @@ export default class Playlists extends Base {
 				if (deletionSize > 0) {
 					const songsSelectedForDeletion: PlaylistTrackObject[] =
 						allTracksArr.slice(0, deletionSize);
-					// Helpers.getRandomItemsFromArray(allTracksArr, deletionSize);
 					logger.info(
 						`${this.constructor.name} > maintainPlaylistsAtSize() > Playlist: ${playlist.name} > Playlist size(${playlistLength}) is more than Max Size(${size}) - Deleting in Total ${deletionSize} songs `
 					);
@@ -829,6 +828,66 @@ export default class Playlists extends Base {
 		};
 	}
 
+	private calculateAvgAudioFeatures(
+		trackFeaturesArr: TrackFeatures[]
+	): TrackFeatures["audioFeatures"] {
+		// Calculate the average audio features of the tracks in the playlist
+		const avgAudioFeatures: TrackFeatures["audioFeatures"] =
+			trackFeaturesArr.reduce(
+				(sum, trackFeatureObj) => ({
+					acousticness:
+						sum.acousticness + trackFeatureObj.audioFeatures.acousticness,
+					danceability:
+						sum.danceability + trackFeatureObj.audioFeatures.danceability,
+					energy: sum.energy + trackFeatureObj.audioFeatures.energy,
+					instrumentalness:
+						sum.instrumentalness +
+						trackFeatureObj.audioFeatures.instrumentalness,
+					liveness: sum.liveness + trackFeatureObj.audioFeatures.liveness,
+					speechiness:
+						sum.speechiness + trackFeatureObj.audioFeatures.speechiness,
+					valence: sum.valence + trackFeatureObj.audioFeatures.valence,
+					duration_ms:
+						sum.duration_ms + trackFeatureObj.audioFeatures.duration_ms,
+				}),
+				{
+					acousticness: 0,
+					danceability: 0,
+					energy: 0,
+					instrumentalness: 0,
+					liveness: 0,
+					speechiness: 0,
+					valence: 0,
+					duration_ms: 0,
+				}
+			);
+
+		avgAudioFeatures.acousticness /= trackFeaturesArr.length;
+		avgAudioFeatures.danceability /= trackFeaturesArr.length;
+		avgAudioFeatures.energy /= trackFeaturesArr.length;
+		avgAudioFeatures.instrumentalness /= trackFeaturesArr.length;
+		avgAudioFeatures.liveness /= trackFeaturesArr.length;
+		avgAudioFeatures.speechiness /= trackFeaturesArr.length;
+		avgAudioFeatures.valence /= trackFeaturesArr.length;
+		avgAudioFeatures.duration_ms /= trackFeaturesArr.length;
+
+		// Round the values of the audio features to 3 decimal places
+		Object.keys(avgAudioFeatures).forEach(key => {
+			avgAudioFeatures[key as keyof TrackFeatures["audioFeatures"]] = Number(
+				avgAudioFeatures[key as keyof TrackFeatures["audioFeatures"]].toFixed(3)
+			);
+		});
+
+		logger.info(
+			`${
+				this.constructor.name
+			} > calculateAvgAudioFeatures() > Average Audio Features of ${
+				trackFeaturesArr.length
+			} Songs: ${JSON.stringify(avgAudioFeatures)}`
+		);
+		return avgAudioFeatures;
+	}
+
 	async getAvgAudioFeaturesBasedOnPlaylist(
 		playlist: PlaylistDetails
 	): Promise<AverageTrackFeaturesWithGenres> {
@@ -878,60 +937,7 @@ export default class Playlists extends Base {
 
 			// Calculate the average audio features of the tracks in the playlist
 			const avgAudioFeatures: TrackFeatures["audioFeatures"] =
-				analyzedTracks.reduce(
-					(sum, trackFeatureObj) => ({
-						acousticness:
-							sum.acousticness + trackFeatureObj.audioFeatures.acousticness,
-						danceability:
-							sum.danceability + trackFeatureObj.audioFeatures.danceability,
-						energy: sum.energy + trackFeatureObj.audioFeatures.energy,
-						instrumentalness:
-							sum.instrumentalness +
-							trackFeatureObj.audioFeatures.instrumentalness,
-						liveness: sum.liveness + trackFeatureObj.audioFeatures.liveness,
-						speechiness:
-							sum.speechiness + trackFeatureObj.audioFeatures.speechiness,
-						valence: sum.valence + trackFeatureObj.audioFeatures.valence,
-						duration_ms:
-							sum.duration_ms + trackFeatureObj.audioFeatures.duration_ms,
-					}),
-					{
-						acousticness: 0,
-						danceability: 0,
-						energy: 0,
-						instrumentalness: 0,
-						liveness: 0,
-						speechiness: 0,
-						valence: 0,
-						duration_ms: 0,
-					}
-				);
-
-			avgAudioFeatures.acousticness /= analyzedTracks.length;
-			avgAudioFeatures.danceability /= analyzedTracks.length;
-			avgAudioFeatures.energy /= analyzedTracks.length;
-			avgAudioFeatures.instrumentalness /= analyzedTracks.length;
-			avgAudioFeatures.liveness /= analyzedTracks.length;
-			avgAudioFeatures.speechiness /= analyzedTracks.length;
-			avgAudioFeatures.valence /= analyzedTracks.length;
-			avgAudioFeatures.duration_ms /= analyzedTracks.length;
-
-			// Round the values of the audio features to 3 decimal places
-			Object.keys(avgAudioFeatures).forEach(key => {
-				avgAudioFeatures[key as keyof TrackFeatures["audioFeatures"]] = Number(
-					avgAudioFeatures[key as keyof TrackFeatures["audioFeatures"]].toFixed(
-						3
-					)
-				);
-			});
-
-			logger.info(
-				`${
-					this.constructor.name
-				} > getAvgAudioFeaturesBasedOnPlaylist() > Average Audio Features of Playlist: ${
-					playlist.name
-				}: ${JSON.stringify(avgAudioFeatures)}`
-			);
+				this.calculateAvgAudioFeatures(analyzedTracks);
 
 			const analyzedFeaturesObj: AverageTrackFeaturesWithGenres = {
 				avgAudioFeatures,
@@ -989,60 +995,7 @@ export default class Playlists extends Base {
 
 			// Calculate the average audio features of the tracks in the playlist
 			const avgAudioFeatures: TrackFeatures["audioFeatures"] =
-				analyzedTracks.reduce(
-					(sum, trackFeatureObj) => ({
-						acousticness:
-							sum.acousticness + trackFeatureObj.audioFeatures.acousticness,
-						danceability:
-							sum.danceability + trackFeatureObj.audioFeatures.danceability,
-						energy: sum.energy + trackFeatureObj.audioFeatures.energy,
-						instrumentalness:
-							sum.instrumentalness +
-							trackFeatureObj.audioFeatures.instrumentalness,
-						liveness: sum.liveness + trackFeatureObj.audioFeatures.liveness,
-						speechiness:
-							sum.speechiness + trackFeatureObj.audioFeatures.speechiness,
-						valence: sum.valence + trackFeatureObj.audioFeatures.valence,
-						duration_ms:
-							sum.duration_ms + trackFeatureObj.audioFeatures.duration_ms,
-					}),
-					{
-						acousticness: 0,
-						danceability: 0,
-						energy: 0,
-						instrumentalness: 0,
-						liveness: 0,
-						speechiness: 0,
-						valence: 0,
-						duration_ms: 0,
-					}
-				);
-
-			avgAudioFeatures.acousticness /= analyzedTracks.length;
-			avgAudioFeatures.danceability /= analyzedTracks.length;
-			avgAudioFeatures.energy /= analyzedTracks.length;
-			avgAudioFeatures.instrumentalness /= analyzedTracks.length;
-			avgAudioFeatures.liveness /= analyzedTracks.length;
-			avgAudioFeatures.speechiness /= analyzedTracks.length;
-			avgAudioFeatures.valence /= analyzedTracks.length;
-			avgAudioFeatures.duration_ms /= analyzedTracks.length;
-
-			// Round the values of the audio features to 3 decimal places
-			Object.keys(avgAudioFeatures).forEach(key => {
-				avgAudioFeatures[key as keyof TrackFeatures["audioFeatures"]] = Number(
-					avgAudioFeatures[key as keyof TrackFeatures["audioFeatures"]].toFixed(
-						3
-					)
-				);
-			});
-
-			logger.info(
-				`${
-					this.constructor.name
-				} > getAvgAudioFeaturesBasedOnTracks() > Average Audio Features of ${
-					tracks.length
-				} Songs: ${JSON.stringify(avgAudioFeatures)}`
-			);
+				this.calculateAvgAudioFeatures(analyzedTracks);
 
 			const analyzedFeaturesObj: AverageTrackFeaturesWithGenres = {
 				avgAudioFeatures,
