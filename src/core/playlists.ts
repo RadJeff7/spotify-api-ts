@@ -522,18 +522,18 @@ export default class Playlists extends Base {
 			this.setUserTokens();
 			// only 2 seed tracks are allowed
 			const selected_seed_tracks =
-				config.seed_tracks_array.length > 3
+				config.seed_tracks_array.length >= 3
 					? Helpers.getRandomItemsFromArray(config.seed_tracks_array, 2)
 					: config.seed_tracks_array;
 			const seedTracksURI = selected_seed_tracks
 				? selected_seed_tracks.map(i => i.id)
 				: undefined;
 			const inputGenres =
-				config.seed_genres_array.length > 4
+				config.seed_genres_array.length >= 4
 					? Helpers.getRandomItemsFromArray(config.seed_genres_array, 3)
 					: config.seed_genres_array;
 			const inputArtists =
-				config.seed_artist_array && config.seed_artist_array.length > 2
+				config.seed_artist_array && config.seed_artist_array.length >= 2
 					? Helpers.getRandomItemsFromArray(config.seed_artist_array, 1)
 					: config.seed_artist_array;
 			const requestConfig: SpotifyApi.RecommendationsOptionsObject = {
