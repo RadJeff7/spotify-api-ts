@@ -14,11 +14,7 @@ const makeSimilarPlaylistFromPlaylist = async (inpuPlaylistId?: string) => {
 
 	const playlist = inpuPlaylistId
 		? playlists
-				.filter(
-					i =>
-						i.id === inpuPlaylistId &&
-						!i.name.match(/(recommedation|similar|mix)/i)
-				)
+				.filter(i => i.id === inpuPlaylistId)
 				?.map(playlist => {
 					return {
 						id: playlist.id,
@@ -29,8 +25,9 @@ const makeSimilarPlaylistFromPlaylist = async (inpuPlaylistId?: string) => {
 		: Helpers.getRandomItemsFromArray(
 				playlists.filter(
 					playlist =>
-						!playlist.owner.display_name?.match(/spotify/i) ||
-						!playlist.name.match(/(recommedation|similar|mix)/i)
+						playlist.public &&
+						(!playlist.owner.display_name?.match(/spotify/i) ||
+							!playlist.name.match(/(recommedation|similar|mix)/i))
 				),
 				1
 		  ).map(i => {
