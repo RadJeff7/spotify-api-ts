@@ -24,7 +24,10 @@ const makeSimilarPlaylistFromPlaylist = async (inpuPlaylistId?: string) => {
 				})[0]
 		: Helpers.getRandomItemsFromArray(
 				playlists.filter(
-					playlist => !playlist.owner.display_name?.match(/spotify/i)
+					playlist =>
+						playlist.public &&
+						(!playlist.owner.display_name?.match(/spotify/i) ||
+							!playlist.name.match(/(recommedation|similar|mix)/i))
 				),
 				1
 		  ).map(i => {
