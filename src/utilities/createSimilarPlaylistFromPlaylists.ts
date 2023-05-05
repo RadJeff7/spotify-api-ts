@@ -26,8 +26,8 @@ const makeSimilarPlaylistFromPlaylist = async (inpuPlaylistId?: string) => {
 				playlists.filter(
 					playlist =>
 						playlist.public &&
-						(!playlist.owner.display_name?.match(/spotify/i) ||
-							!playlist.name.match(/(recommedation|similar|mix)/i))
+						!playlist.name.match(/(recommedation|similar|mix)/i) &&
+						!playlist.owner.display_name?.match(/spotify/i)
 				),
 				1
 		  ).map(i => {
