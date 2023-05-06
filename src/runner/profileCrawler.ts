@@ -77,11 +77,7 @@ const main = async () => {
 	}
 };
 
-main()
-	.catch(err => {
-		console.error(`profileCrawler() Error >> ${err}`);
-	})
-	.then(() => {
-		console.log("END");
-		process.exit(0);
-	});
+main().catch(err => {
+	console.error(`profileCrawler() Error >> ${err}`);
+	process.exit(-1);
+});

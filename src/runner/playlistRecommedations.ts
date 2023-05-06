@@ -63,11 +63,7 @@ const main = async () => {
 	}
 };
 
-main()
-	.catch(err => {
-		console.error(`PlaylistRecommedationCreator() Error >> ${err}`);
-	})
-	.then(() => {
-		console.log("END");
-		process.exit(0);
-	});
+main().catch(err => {
+	console.error(`PlaylistRecommedationCreator() Error >> ${err}`);
+	process.exit(-1);
+});

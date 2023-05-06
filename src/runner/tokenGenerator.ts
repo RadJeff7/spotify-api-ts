@@ -53,4 +53,7 @@ const main = async () => {
 	}
 };
 
-main();
+main().catch(err => {
+	console.error(`tokenGenerator() Error >> ${err}`);
+	process.exit(-1);
+});
