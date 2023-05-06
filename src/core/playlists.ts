@@ -126,7 +126,7 @@ export default class Playlists extends Base {
 					limit < totalTracksPresent ? totalTracksPresent - limit : 0
 				}`
 			);
-			playlistTracksResponse.body.items.map(i => {
+			playlistTracksResponse.body.items.forEach(i => {
 				if (i.track)
 					allTracksArr.push({
 						track: i.track,
@@ -142,7 +142,7 @@ export default class Playlists extends Base {
 					{ limit: limit, offset: count }
 				);
 
-				playlistTracksResponse.body.items.map(i => {
+				playlistTracksResponse.body.items.forEach(i => {
 					if (i.track)
 						allTracksArr.push({
 							track: i.track,
@@ -777,14 +777,14 @@ export default class Playlists extends Base {
 			// Create a frequency count of genres using a Map
 			const genreCounts: Map<string, number> = new Map();
 			genres.forEach((genre: string) => {
-				const count: number = genreCounts.get(genre) || 0;
+				const count: number = genreCounts.get(genre) ?? 0;
 				genreCounts.set(genre, count + 1);
 			});
 
 			// Create a frequency count of Artists using a Map
 			const artistNameCounts: Map<string, number> = new Map();
 			artistNames.forEach((artist: string) => {
-				const count: number = artistNameCounts.get(artist) || 0;
+				const count: number = artistNameCounts.get(artist) ?? 0;
 				artistNameCounts.set(artist, count + 1);
 			});
 
@@ -792,8 +792,8 @@ export default class Playlists extends Base {
 			completeSortedArtistAndGenres.sortedGenres = Array.from(
 				genreCounts.keys()
 			).sort((a, b) => {
-				const countA: number = genreCounts.get(a) || 0;
-				const countB: number = genreCounts.get(b) || 0;
+				const countA: number = genreCounts.get(a) ?? 0;
+				const countB: number = genreCounts.get(b) ?? 0;
 				return countB - countA;
 			});
 
@@ -801,8 +801,8 @@ export default class Playlists extends Base {
 			completeSortedArtistAndGenres.sortedArtists = Array.from(
 				artistNameCounts.keys()
 			).sort((a, b) => {
-				const countA: number = artistNameCounts.get(a) || 0;
-				const countB: number = artistNameCounts.get(b) || 0;
+				const countA: number = artistNameCounts.get(a) ?? 0;
+				const countB: number = artistNameCounts.get(b) ?? 0;
 				return countB - countA;
 			});
 			logger.info(

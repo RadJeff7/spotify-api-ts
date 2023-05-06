@@ -72,7 +72,7 @@ export default class ImageDownloader {
 					searchConfig
 				)} >> Images Found >> ${urls?.length}`
 			);
-			if (!urls || !urls.length) {
+			if (!urls?.length) {
 				const errStr = `${
 					this.constructor.name
 				} > getImageURLsBySearch() > Valid URLs not found - Check Search Params >> ${JSON.stringify(

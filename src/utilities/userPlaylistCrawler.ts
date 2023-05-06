@@ -44,7 +44,7 @@ const GivenUsersPlaylistCrawler = async (userId: string) => {
 		} >> Names: ${sourcePlaylists.map(i => i.name).join(", ")} \n\n`
 	);
 
-	if (!sourcePlaylists || !sourcePlaylists.length) {
+	if (!sourcePlaylists?.length) {
 		throw new Error(
 			`userPlaylistCrawler() > Recommending User: ${userDetails.display_name} - Source Playlists not found - skipping rest of the process`
 		);
@@ -105,7 +105,7 @@ const GivenUsersPlaylistCrawler = async (userId: string) => {
 					playlist,
 					5
 				);
-				if (randomTracks && randomTracks.length) {
+				if (randomTracks?.length) {
 					allRandomTracks.push(...randomTracks);
 				}
 			})

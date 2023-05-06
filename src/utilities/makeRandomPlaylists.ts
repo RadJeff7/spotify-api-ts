@@ -23,7 +23,7 @@ const makeRandomPlaylists = async () => {
 			return i.owner?.toLowerCase().includes("spotify");
 		});
 
-	if (!featuredPlaylists || !featuredPlaylists.length) {
+	if (!featuredPlaylists?.length) {
 		const errStr = `makeRandomPlaylists() > Featured Playlists not found - skipping rest of the process`;
 		logger.error(errStr);
 		throw new Error(errStr);
@@ -74,7 +74,7 @@ const makeRandomPlaylists = async () => {
 					playlist,
 					3
 				);
-				if (randomTracks && randomTracks.length) {
+				if (randomTracks?.length) {
 					allRandomTracks.push(...randomTracks);
 				}
 			})
