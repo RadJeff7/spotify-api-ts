@@ -61,7 +61,7 @@
 		"puppeteer-screen-recorder": "^2.1.2",
 		"rimraf": "^5.0.0",
 		"ts-node": "^10.9.1",
-		"typedoc": "^0.23.28",
+		"typedoc": "^0.24.7",
 		"typescript": "^5.0.2",
 		"unsplash-js": "^7.0.15"
 	},
