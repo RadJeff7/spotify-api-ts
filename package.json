@@ -55,7 +55,7 @@
 		"lint-staged": "^13.2.0",
 		"log4js": "^6.3.0",
 		"moment": "^2.29.4",
-		"prettier": "^2.8.5",
+		"prettier": "^3.0.3",
 		"puppeteer": "^20.2.0",
 		"puppeteer-screen-recorder": "^2.1.2",
 		"rimraf": "^5.0.0",
